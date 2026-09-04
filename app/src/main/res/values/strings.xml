@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Optiva X</string>
+    <string name="accessibility_service_label">Optiva X Otomatik Önbellek Temizleyici</string>
+    <string name="accessibility_service_description">Optiva X, seçtiğiniz uygulamaların gereksiz sistem önbelleklerini (Instagram, TikTok, YouTube vb.) otomatik olarak temizlemek için bu servisi kullanır. Kişisel verileriniz asla okunmaz veya saklanmaz.</string>
+</resources>

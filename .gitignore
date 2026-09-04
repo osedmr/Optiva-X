@@ -1,0 +1,27 @@
+*.iml
+.gradle
+/local.properties
+local.properties
+
+# Android Studio & IntelliJ
+.idea/
+*.iws
+
+# Build artifacts & outputs
+build/
+*/build/
+*.apk
+*.aar
+*.aab
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+/captures
+.externalNativeBuild
+.cxx
+
+# Security & Keystores
+*.jks
+*.keystore
