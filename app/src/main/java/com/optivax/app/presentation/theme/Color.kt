@@ -2,32 +2,74 @@ package com.optivax.app.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Optiva X Ultra-Modern Cyber/Glassmorphic Obsidian Palette
-val DeepObsidian = Color(0xFF07090E)
-val DarkBackground = DeepObsidian
-val ObsidianElevated = Color(0xFF0D121D)
-val DarkSurface = Color(0xFF101726)
-val DarkSurfaceCard = Color(0xFF141D30)
-val DarkSurfaceVariant = Color(0xFF1C2842)
-val SurfaceHighlight = Color(0xFF223254)
+/**
+ * OptivaX Unified Design System Tokens
+ * Based on the 60-30-10 Mobile Architecture (Canvas - Surface - Single Brand Accent)
+ */
+object OptivaColors {
+    // 1. Signature Brand Identity (The 1 Dominant Brand Accent)
+    val BrandPrimary = Color(0xFF00E5FF)          // Electric Cobalt Cyan
+    val BrandPrimaryDark = Color(0xFF00B8CC)      // Pressed / Active
+    val BrandPrimaryContainer = Color(0x2400E5FF) // 14% Tonal Container for active pills/chips
+    val BrandPrimarySubtle = Color(0x0F00E5FF)    // 6% Subtle Accent Glow
 
-// Signature Glowing Accents
-val NeonCyan = Color(0xFF00F2FE)
-val NeonCyanGlow = Color(0x4000F2FE)
-val CyberPurple = Color(0xFF8A2BE2)
-val CyberPurpleGlow = Color(0x408A2BE2)
-val NeonEmerald = Color(0xFF00FFA3)
-val NeonEmeraldGlow = Color(0x4000FFA3)
-val NeonCoral = Color(0xFFFF3366)
-val NeonCoralGlow = Color(0x40FF3366)
-val CyberAmber = Color(0xFFFFB800)
+    // 2. Neutral Surfaces & Elevations (Luminance Hierarchy)
+    val CanvasBase = Color(0xFF07090E)            // Level 0: Pure Deep Obsidian Canvas
+    val SurfaceSub = Color(0xFF0E1420)            // Level 1: Sub-surface / Inactive Grouping
+    val SurfaceCard = Color(0xFF131B2B)           // Level 2: Default Card Surface
+    val SurfaceElevated = Color(0xFF1B253B)       // Level 3: Elevated Card / Sheet / Dialog
+    val SurfaceInteractive = Color(0xFF24314C)    // Level 4: Hover / Active Interactive State
+
+    // 3. Specular Borders & Dividers
+    val BorderSubtle = Color(0x14FFFFFF)          // 8% White - Elegant card outline
+    val BorderStrong = Color(0x26FFFFFF)          // 15% White - Highlight edge
+    val BorderBrand = Color(0x6600E5FF)           // 40% Brand - Active outline
+    val Divider = Color(0x0FFFFFFF)               // 6% White - Row separators
+
+    // 4. Functional / Semantic Supporting Colors (Strict Usage)
+    val Success = Color(0xFF34D399)               // Neural Emerald (Clean completed / freed space)
+    val SuccessContainer = Color(0x2610B981)
+    val Warning = Color(0xFFFBBF24)               // Cyber Amber (80%+ Storage / Missing permission)
+    val WarningContainer = Color(0x26F59E0B)
+    val Danger = Color(0xFFF87171)                // Coral Red (Destructive permanent deletion)
+    val DangerContainer = Color(0x26EF4444)
+    val Info = Color(0xFF38BDF8)                  // Slate Cyan (Telemetry & system specs)
+
+    // 5. Typography Hierarchy (WCAG AAA Compliant)
+    val TextPrimary = Color(0xFFF8FAFC)           // Slate 50 (Soft Off-White, anti-halation)
+    val TextSecondary = Color(0xFF94A3B8)         // Slate 400 (Subtitles, metadata)
+    val TextMuted = Color(0xFF64748B)             // Slate 500 (Placeholders, inactive nav)
+}
+
+// Backward-Compatible & Ergonomic Aliases
+val DeepObsidian = OptivaColors.CanvasBase
+val DarkBackground = OptivaColors.CanvasBase
+val ObsidianElevated = OptivaColors.SurfaceSub
+val DarkSurface = OptivaColors.SurfaceCard
+val DarkSurfaceCard = OptivaColors.SurfaceCard
+val DarkSurfaceVariant = OptivaColors.SurfaceElevated
+val SurfaceHighlight = OptivaColors.SurfaceInteractive
+
+// Brand Primary Accent
+val NeonCyan = OptivaColors.BrandPrimary
+val NeonCyanGlow = OptivaColors.BrandPrimarySubtle
+
+// Semantic Colors (Mapped to clean, accessible palette)
+val NeonEmerald = OptivaColors.Success
+val NeonEmeraldGlow = OptivaColors.SuccessContainer
+val CyberAmber = OptivaColors.Warning
+val NeonCoral = OptivaColors.Danger
+val NeonCoralGlow = OptivaColors.DangerContainer
+val CyberPurple = Color(0xFF818CF8) // Refined Slate Indigo
+val CyberPurpleGlow = Color(0x26818CF8)
 
 // Text Hues
-val TextPrimary = Color(0xFFF8FAFC)
-val TextSecondary = Color(0xFF94A3B8)
-val TextMuted = Color(0xFF64748B)
+val TextPrimary = OptivaColors.TextPrimary
+val TextSecondary = OptivaColors.TextSecondary
+val TextMuted = OptivaColors.TextMuted
 
-// Glass Borders & Outlines
-val GlassBorder = Color(0x2E00F2FE)
-val GlassBorderPurple = Color(0x2E8A2BE2)
-val OutlineDark = Color(0xFF263552)
+// Borders & Outlines
+val GlassBorder = OptivaColors.BorderSubtle
+val GlassBorderPurple = OptivaColors.BorderSubtle
+val OutlineDark = OptivaColors.BorderSubtle
+val BorderBrand = OptivaColors.BorderBrand

@@ -1,11 +1,13 @@
 package com.optivax.app.presentation.storage
 
+import android.content.IntentSender
 import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.optivax.app.core.Constants
 import com.optivax.app.core.FileUtils
+import com.optivax.app.core.MediaStoreHelper
 import com.optivax.app.core.Resource
 import com.optivax.app.core.notification.OptivaBannerController
 import com.optivax.app.domain.model.BlurryPhotoItem
@@ -114,7 +116,8 @@ data class StorageCleanUiState(
     val isTrashDialogVisible: Boolean = false,
     val useTrashBin: Boolean = true,
     val cleanedBytesResult: Long? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val pendingDeleteIntentSender: IntentSender? = null
 ) {
     fun getSelectedFilesForCategory(category: WhatsAppMediaCategory): Set<String> {
         return selectedWhatsAppFilePaths[category.type] ?: (
@@ -676,6 +679,28 @@ class StorageViewModel @Inject constructor(
         _uiState.update { it.copy(selectedDuplicatePaths = suggested) }
     }
 
+    fun autoSelectDuplicatesKeepOldest() {
+        val suggested = mutableSetOf<String>()
+        for (item in _uiState.value.duplicates) {
+            val sorted = item.duplicates.sortedBy { it.lastModified }
+            if (sorted.size > 1) {
+                sorted.drop(1).forEach { suggested.add(it.filePath) }
+            }
+        }
+        _uiState.update { it.copy(selectedDuplicatePaths = suggested) }
+    }
+
+    fun autoSelectDuplicatesKeepNewest() {
+        val suggested = mutableSetOf<String>()
+        for (item in _uiState.value.duplicates) {
+            val sorted = item.duplicates.sortedByDescending { it.lastModified }
+            if (sorted.size > 1) {
+                sorted.drop(1).forEach { suggested.add(it.filePath) }
+            }
+        }
+        _uiState.update { it.copy(selectedDuplicatePaths = suggested) }
+    }
+
     fun deselectAllDuplicates() {
         _uiState.update { it.copy(selectedDuplicatePaths = emptySet()) }
     }
@@ -707,6 +732,25 @@ class StorageViewModel @Inject constructor(
             state.copy(
                 selectedWhatsAppCategories = emptySet(),
                 selectedWhatsAppFilePaths = emptyMap()
+            )
+        }
+    }
+
+    fun selectAllWhatsAppSentFolders() {
+        _uiState.update { state ->
+            val sentCategories = state.whatsAppCategories.filter {
+                it.type == WhatsAppCategoryType.SENT_VIDEOS ||
+                it.type == WhatsAppCategoryType.SENT_IMAGES ||
+                it.type == WhatsAppCategoryType.SENT_DOCUMENTS ||
+                it.type == WhatsAppCategoryType.SENT_AUDIO
+            }
+            val fileMap = state.selectedWhatsAppFilePaths.toMutableMap()
+            for (cat in sentCategories) {
+                fileMap[cat.type] = cat.files.map { it.absolutePath }.toSet()
+            }
+            state.copy(
+                selectedWhatsAppCategories = state.selectedWhatsAppCategories + sentCategories.map { it.type }.toSet(),
+                selectedWhatsAppFilePaths = fileMap
             )
         }
     }
@@ -1178,5 +1222,21 @@ class StorageViewModel @Inject constructor(
         freed += state.screenshots.filter { state.selectedScreenshotPaths.contains(it.path) }.sumOf { it.sizeBytes }
         freed += state.downloadsAndApks.filter { state.selectedDownloadPaths.contains(it.path) }.sumOf { it.sizeBytes }
         return freed
+    }
+
+    fun clearPendingDeleteIntentSender() {
+        _uiState.update { it.copy(pendingDeleteIntentSender = null) }
+    }
+
+    fun onDeleteIntentSenderApproved() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    pendingDeleteIntentSender = null,
+                    isCleaning = false
+                )
+            }
+            startScan()
+        }
     }
 }

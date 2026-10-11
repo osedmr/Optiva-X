@@ -20,7 +20,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.CleaningServices
+import androidx.compose.material.icons.filled.FolderZip
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -45,11 +45,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.optivax.app.presentation.apps.AppManagerScreen
 import com.optivax.app.presentation.dashboard.DashboardScreen
-import com.optivax.app.presentation.storage.StorageCleanScreen
-import com.optivax.app.presentation.theme.DarkSurfaceCard
-import com.optivax.app.presentation.theme.GlassBorder
-import com.optivax.app.presentation.theme.NeonCyan
-import com.optivax.app.presentation.theme.TextMuted
+import com.optivax.app.presentation.files.FilesCleanScreen
+import com.optivax.app.presentation.gallery.GalleryScreen
+import com.optivax.app.presentation.theme.OptivaColors
 
 data class NavigationItem(
     val screen: Screen,
@@ -58,13 +56,14 @@ data class NavigationItem(
 )
 
 val navigationItems = listOf(
-    NavigationItem(Screen.Dashboard, Icons.Default.Speed, "Dashboard"),
-    NavigationItem(Screen.StorageClean, Icons.Default.CleaningServices, "Temizlik"),
+    NavigationItem(Screen.Dashboard, Icons.Default.Speed, "Temizle"),
+    NavigationItem(Screen.GalleryClean, Icons.Default.PhotoLibrary, "Galeri"),
+    NavigationItem(Screen.FilesClean, Icons.Default.FolderZip, "Dosyalar"),
     NavigationItem(Screen.AppManager, Icons.Default.Apps, "Uygulamalar")
 )
 
 /**
- * Floating Glassmorphic Pill Navigation Bar inspired by top Figma cyber/utility app designs.
+ * Floating Glassmorphic Pill Navigation Bar with 4 ergonomic tabs.
  * Sits safely above the system navigation bar with [navigationBarsPadding].
  */
 @Composable
@@ -79,23 +78,21 @@ fun OptivaFloatingBottomBar(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 10.dp),
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(68.dp)
+                .height(66.dp)
                 .clip(RoundedCornerShape(32.dp))
-                .background(DarkSurfaceCard.copy(alpha = 0.95f))
+                .background(OptivaColors.SurfaceCard.copy(alpha = 0.96f))
                 .border(
-                    width = 1.2.dp,
-                    brush = Brush.horizontalGradient(
-                        listOf(GlassBorder, GlassBorder.copy(alpha = 0.1f), GlassBorder)
-                    ),
+                    width = 1.dp,
+                    color = OptivaColors.BorderSubtle,
                     shape = RoundedCornerShape(32.dp)
                 )
-                .padding(horizontal = 8.dp, vertical = 6.dp),
+                .padding(horizontal = 6.dp, vertical = 5.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -103,20 +100,20 @@ fun OptivaFloatingBottomBar(
                 val isSelected = currentRoute == item.screen.route
 
                 val iconColor by animateColorAsState(
-                    targetValue = if (isSelected) NeonCyan else TextMuted,
+                    targetValue = if (isSelected) OptivaColors.BrandPrimary else OptivaColors.TextMuted,
                     animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
                     label = "NavIconColor"
                 )
 
                 val pillBackground by animateColorAsState(
-                    targetValue = if (isSelected) NeonCyan.copy(alpha = 0.14f) else Color.Transparent,
+                    targetValue = if (isSelected) OptivaColors.BrandPrimaryContainer else Color.Transparent,
                     label = "NavPillBackground"
                 )
 
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(22.dp))
+                        .clip(RoundedCornerShape(20.dp))
                         .background(pillBackground)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -132,7 +129,7 @@ fun OptivaFloatingBottomBar(
                                 }
                             }
                         }
-                        .padding(vertical = 6.dp),
+                        .padding(vertical = 5.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -143,15 +140,15 @@ fun OptivaFloatingBottomBar(
                             imageVector = item.icon,
                             contentDescription = item.label,
                             tint = iconColor,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.height(3.dp))
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = item.label,
                             color = iconColor,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            fontSize = 11.sp,
+                            fontSize = 10.5.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             softWrap = false
@@ -175,8 +172,17 @@ fun OptivaNavHost(
     ) {
         composable(Screen.Dashboard.route) {
             DashboardScreen(
-                onNavigateToStorageClean = {
-                    navController.navigate(Screen.StorageClean.route) {
+                onNavigateToGallery = {
+                    navController.navigate(Screen.GalleryClean.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onNavigateToFiles = {
+                    navController.navigate(Screen.FilesClean.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }
@@ -196,8 +202,17 @@ fun OptivaNavHost(
             )
         }
 
+        composable(Screen.GalleryClean.route) {
+            GalleryScreen()
+        }
+
+        composable(Screen.FilesClean.route) {
+            FilesCleanScreen()
+        }
+
+        // Backward compatibility route
         composable(Screen.StorageClean.route) {
-            StorageCleanScreen()
+            FilesCleanScreen()
         }
 
         composable(Screen.AppManager.route) {

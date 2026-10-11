@@ -1,9 +1,11 @@
 package com.optivax.app.data.repository
 
+import android.content.Context
 import android.os.Environment
 import android.util.Log
 import com.optivax.app.core.Constants
 import com.optivax.app.core.FileUtils
+import com.optivax.app.core.MediaStoreHelper
 import com.optivax.app.core.Resource
 import com.optivax.app.data.local.TrashDao
 import com.optivax.app.data.local.TrashEntity
@@ -11,6 +13,7 @@ import com.optivax.app.di.IoDispatcher
 import com.optivax.app.domain.model.CleanProgress
 import com.optivax.app.domain.model.TrashItem
 import com.optivax.app.domain.repository.TrashRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -24,12 +27,13 @@ import javax.inject.Singleton
 @Singleton
 class TrashRepositoryImpl @Inject constructor(
     private val trashDao: TrashDao,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context
 ) : TrashRepository {
 
     private val trashDir: File by lazy {
-        val root = Environment.getExternalStorageDirectory()
-        val dir = File(root, ".optivax_trash")
+        val baseDir = context.getExternalFilesDir(null) ?: context.filesDir
+        val dir = File(baseDir, "safe_trash")
         if (!dir.exists()) {
             dir.mkdirs()
             // Create .nomedia so system media scanners ignore recycled files
@@ -229,9 +233,17 @@ class TrashRepositoryImpl @Inject constructor(
                     input.copyTo(output)
                 }
             }
-            src.delete()
+            val deleted = src.delete()
+            if (!deleted) {
+                // If direct delete fails on Android 10-16 Scoped Storage, try MediaStore resolver
+                val uri = MediaStoreHelper.getMediaUriForPath(context, src.absolutePath)
+                if (uri != null) {
+                    MediaStoreHelper.deleteViaContentResolver(context, uri)
+                }
+            }
             true
         } catch (e: Exception) {
+            Log.e(Constants.TAG, "[TRASH] Failed to move file '${src.path}' physically: ${e.message}")
             false
         }
     }

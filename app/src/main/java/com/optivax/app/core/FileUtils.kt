@@ -1,5 +1,9 @@
 package com.optivax.app.core
 
+import android.content.Context
+import android.content.Intent
+import android.util.Log
+import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -124,6 +128,27 @@ object FileUtils {
             "zip", "rar", "7z", "tar", "gz", "bz2" -> "ARCHIVE"
             "apk", "xapk", "apks" -> "APK"
             else -> "OTHER"
+        }
+    }
+
+    /**
+     * Safely opens any file with the Android system default app using FileProvider.
+     */
+    fun openFileWithSystem(context: Context, file: File) {
+        try {
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file
+            )
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, context.contentResolver.getType(uri) ?: "*/*")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(Constants.TAG, "Cannot open file: ${file.absolutePath}", e)
         }
     }
 }

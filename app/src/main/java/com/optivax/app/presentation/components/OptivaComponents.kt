@@ -59,30 +59,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.optivax.app.domain.model.StorageBreakdown
-import com.optivax.app.presentation.theme.CyberAmber
-import com.optivax.app.presentation.theme.CyberPurple
-import com.optivax.app.presentation.theme.DarkBackground
-import com.optivax.app.presentation.theme.DarkSurfaceCard
-import com.optivax.app.presentation.theme.DarkSurfaceVariant
-import com.optivax.app.presentation.theme.DeepObsidian
-import com.optivax.app.presentation.theme.GlassBorder
-import com.optivax.app.presentation.theme.NeonCoral
-import com.optivax.app.presentation.theme.NeonCyan
-import com.optivax.app.presentation.theme.NeonEmerald
-import com.optivax.app.presentation.theme.TextMuted
-import com.optivax.app.presentation.theme.TextPrimary
-import com.optivax.app.presentation.theme.TextSecondary
+import com.optivax.app.presentation.theme.OptivaColors
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Premium Glassmorphic Card with subtle neon gradient border and rounded corners.
+ * Premium Glassmorphic Card with subtle specularity and rounded corners.
  */
 @Composable
 fun OptivaGlassCard(
     modifier: Modifier = Modifier,
-    borderColor: Color = GlassBorder,
-    backgroundColor: Color = DarkSurfaceCard.copy(alpha = 0.88f),
+    borderColor: Color = OptivaColors.BorderSubtle,
+    backgroundColor: Color = OptivaColors.SurfaceCard,
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
@@ -91,14 +79,8 @@ fun OptivaGlassCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .border(
-                width = 1.2.dp,
-                brush = Brush.linearGradient(
-                    listOf(
-                        borderColor,
-                        borderColor.copy(alpha = 0.05f),
-                        borderColor.copy(alpha = 0.3f)
-                    )
-                ),
+                width = 1.dp,
+                color = borderColor,
                 shape = RoundedCornerShape(20.dp)
             )
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
@@ -130,9 +112,9 @@ fun HudCircularGauge(
     )
 
     val stateColor = accentColor ?: when {
-        percentage >= 82f -> NeonCoral
-        percentage >= 65f -> CyberAmber
-        else -> NeonEmerald
+        percentage >= 85f -> OptivaColors.Danger
+        percentage >= 70f -> OptivaColors.Warning
+        else -> OptivaColors.BrandPrimary
     }
 
     Box(
@@ -161,7 +143,7 @@ fun HudCircularGauge(
                 val tickColor = if (i.toFloat() / totalTicks <= animatedProgress) {
                     stateColor.copy(alpha = 0.7f)
                 } else {
-                    DarkSurfaceVariant.copy(alpha = 0.4f)
+                    OptivaColors.SurfaceSub.copy(alpha = 0.6f)
                 }
 
                 drawLine(
@@ -174,16 +156,16 @@ fun HudCircularGauge(
 
             // Track background arc
             drawArc(
-                color = DarkSurfaceVariant,
+                color = OptivaColors.SurfaceSub,
                 startAngle = 140f,
                 sweepAngle = 260f,
                 useCenter = false,
                 style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
             )
 
-            // Neon Gradient Active Arc
+            // Active Arc
             val brush = Brush.sweepGradient(
-                colors = listOf(stateColor.copy(alpha = 0.6f), stateColor, NeonCyan, stateColor)
+                colors = listOf(stateColor.copy(alpha = 0.5f), stateColor, stateColor)
             )
 
             drawArc(
@@ -212,15 +194,15 @@ fun HudCircularGauge(
             // Status Pill Badge
             val statusColor = stateColor
             val statusText = when {
-                percentage >= 82f -> "TEMİZLİK ÖNERİLİR"
-                percentage >= 65f -> "DİKKAT"
-                else -> "SİSTEM SAĞLIKLI"
+                percentage >= 85f -> "TEMİZLİK ÖNERİLİR"
+                percentage >= 70f -> "DİKKAT"
+                else -> "SİSTEM OPTİMİZE"
             }
 
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
-                    .background(statusColor.copy(alpha = 0.16f))
+                    .background(statusColor.copy(alpha = 0.14f))
                     .border(0.8.dp, statusColor.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
                     .padding(horizontal = 7.dp, vertical = 2.dp)
             ) {
@@ -241,14 +223,14 @@ fun HudCircularGauge(
             Text(
                 text = "$usedText Dolu",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary,
+                color = OptivaColors.TextSecondary,
                 fontSize = 10.sp
             )
 
             Text(
                 text = "Kalan: $freeText",
                 style = MaterialTheme.typography.bodyMedium,
-                color = NeonEmerald,
+                color = OptivaColors.BrandPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.5.sp
             )
@@ -286,13 +268,13 @@ fun RadarScanAnimation(
         ) {
             Canvas(modifier = Modifier.size(140.dp)) {
                 // Concentric circles
-                drawCircle(color = NeonCyan.copy(alpha = 0.1f), radius = 60.dp.toPx(), style = Stroke(width = 1.dp.toPx()))
-                drawCircle(color = NeonCyan.copy(alpha = 0.15f), radius = 40.dp.toPx(), style = Stroke(width = 1.dp.toPx()))
-                drawCircle(color = NeonCyan.copy(alpha = 0.2f), radius = 20.dp.toPx(), style = Stroke(width = 1.dp.toPx()))
+                drawCircle(color = OptivaColors.BrandPrimary.copy(alpha = 0.08f), radius = 60.dp.toPx(), style = Stroke(width = 1.dp.toPx()))
+                drawCircle(color = OptivaColors.BrandPrimary.copy(alpha = 0.12f), radius = 40.dp.toPx(), style = Stroke(width = 1.dp.toPx()))
+                drawCircle(color = OptivaColors.BrandPrimary.copy(alpha = 0.18f), radius = 20.dp.toPx(), style = Stroke(width = 1.dp.toPx()))
 
                 // Rotating radar beam
                 val sweepBrush = Brush.sweepGradient(
-                    colors = listOf(Color.Transparent, NeonCyan.copy(alpha = 0.4f), NeonCyan)
+                    colors = listOf(Color.Transparent, OptivaColors.BrandPrimary.copy(alpha = 0.35f), OptivaColors.BrandPrimary)
                 )
 
                 rotate(rotation) {
@@ -310,20 +292,20 @@ fun RadarScanAnimation(
                 modifier = Modifier
                     .size(14.dp)
                     .clip(CircleShape)
-                    .background(NeonCyan)
+                    .background(OptivaColors.BrandPrimary)
             )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = statusText,
-            color = TextPrimary,
+            color = OptivaColors.TextPrimary,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
         Text(
             text = "Yapay zekalı derin analiz aktif",
-            color = TextSecondary,
+            color = OptivaColors.TextSecondary,
             style = MaterialTheme.typography.labelSmall
         )
     }
@@ -349,14 +331,14 @@ fun StorageProgressBar(
                 .fillMaxWidth()
                 .height(10.dp)
                 .clip(RoundedCornerShape(5.dp))
-                .background(DarkSurfaceVariant)
+                .background(OptivaColors.SurfaceSub)
         ) {
             if (appsRatio > 0) {
                 Box(
                     modifier = Modifier
                         .weight(appsRatio)
                         .height(10.dp)
-                        .background(CyberPurple)
+                        .background(OptivaColors.Info)
                 )
             }
             if (mediaRatio > 0) {
@@ -364,7 +346,7 @@ fun StorageProgressBar(
                     modifier = Modifier
                         .weight(mediaRatio)
                         .height(10.dp)
-                        .background(NeonCyan)
+                        .background(OptivaColors.BrandPrimary)
                 )
             }
             if (systemRatio > 0) {
@@ -372,7 +354,7 @@ fun StorageProgressBar(
                     modifier = Modifier
                         .weight(systemRatio)
                         .height(10.dp)
-                        .background(CyberAmber)
+                        .background(OptivaColors.Warning)
                 )
             }
             if (otherRatio > 0) {
@@ -380,7 +362,7 @@ fun StorageProgressBar(
                     modifier = Modifier
                         .weight(otherRatio)
                         .height(10.dp)
-                        .background(TextMuted)
+                        .background(OptivaColors.TextMuted)
                 )
             }
         }
@@ -399,13 +381,13 @@ fun StorageProgressBar(
                 LegendItem(
                     label = "Uygulamalar",
                     value = breakdown.formattedApps,
-                    color = CyberPurple,
+                    color = OptivaColors.Info,
                     modifier = Modifier.weight(1f)
                 )
                 LegendItem(
                     label = "Medya & Galeri",
                     value = breakdown.formattedMedia,
-                    color = NeonCyan,
+                    color = OptivaColors.BrandPrimary,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -416,13 +398,13 @@ fun StorageProgressBar(
                 LegendItem(
                     label = "Sistem & OS",
                     value = breakdown.formattedSystem,
-                    color = CyberAmber,
+                    color = OptivaColors.Warning,
                     modifier = Modifier.weight(1f)
                 )
                 LegendItem(
                     label = "Diğer & Önbellek",
                     value = breakdown.formattedOther,
-                    color = TextMuted,
+                    color = OptivaColors.TextMuted,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -440,7 +422,7 @@ private fun LegendItem(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(10.dp))
-            .background(DarkSurfaceVariant.copy(alpha = 0.45f))
+            .background(OptivaColors.SurfaceSub)
             .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -455,7 +437,7 @@ private fun LegendItem(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary,
+                color = OptivaColors.TextSecondary,
                 fontSize = 10.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -463,7 +445,7 @@ private fun LegendItem(
             Text(
                 text = value,
                 style = MaterialTheme.typography.labelMedium,
-                color = TextPrimary,
+                color = OptivaColors.TextPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp,
                 maxLines = 1,
@@ -474,7 +456,7 @@ private fun LegendItem(
 }
 
 /**
- * Standard neon primary button with pill curvature and glow effect.
+ * Standard primary brand button with rounded curvature and high-contrast typography.
  */
 @Composable
 fun OptivaButton(
@@ -484,8 +466,8 @@ fun OptivaButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     isLoading: Boolean = false,
     enabled: Boolean = true,
-    containerColor: Color = NeonCyan,
-    contentColor: Color = DeepObsidian
+    containerColor: Color = OptivaColors.BrandPrimary,
+    contentColor: Color = OptivaColors.CanvasBase
 ) {
     Button(
         onClick = onClick,
@@ -496,8 +478,8 @@ fun OptivaButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor,
-            disabledContainerColor = DarkSurfaceVariant,
-            disabledContentColor = TextMuted
+            disabledContainerColor = OptivaColors.SurfaceElevated,
+            disabledContentColor = OptivaColors.TextMuted
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -542,8 +524,8 @@ fun PermissionPromptCard(
 ) {
     OptivaGlassCard(
         modifier = modifier,
-        borderColor = CyberAmber.copy(alpha = 0.6f),
-        backgroundColor = DarkSurfaceCard.copy(alpha = 0.95f)
+        borderColor = OptivaColors.Warning.copy(alpha = 0.4f),
+        backgroundColor = OptivaColors.SurfaceCard
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -553,13 +535,13 @@ fun PermissionPromptCard(
                 modifier = Modifier
                     .size(46.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(CyberAmber.copy(alpha = 0.15f)),
+                    .background(OptivaColors.Warning.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Security,
                     contentDescription = null,
-                    tint = CyberAmber,
+                    tint = OptivaColors.Warning,
                     modifier = Modifier.size(26.dp)
                 )
             }
@@ -568,20 +550,20 @@ fun PermissionPromptCard(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = CyberAmber,
+                    color = OptivaColors.Warning,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
+                    color = OptivaColors.TextSecondary,
                     fontSize = 12.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = onActionClick,
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = CyberAmber, contentColor = DeepObsidian),
+                    colors = ButtonDefaults.buttonColors(containerColor = OptivaColors.Warning, contentColor = OptivaColors.CanvasBase),
                     modifier = Modifier.height(36.dp)
                 ) {
                     Text(text = actionText, fontWeight = FontWeight.Bold, fontSize = 12.sp)
@@ -607,13 +589,13 @@ fun AnimationGuideDialog(
                 Icon(
                     imageVector = Icons.Default.Speed,
                     contentDescription = null,
-                    tint = NeonCyan,
+                    tint = OptivaColors.BrandPrimary,
                     modifier = Modifier.size(28.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "0.5x Hızlandırma Rehberi",
-                    color = TextPrimary,
+                    color = OptivaColors.TextPrimary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -623,7 +605,7 @@ fun AnimationGuideDialog(
                 Text(
                     text = "Android cihazınızın pencereleri ve geçişleri 2 kat daha hızlı açması için standart animasyon ölçeğini 0.5x yapabilirsiniz:\n",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = OptivaColors.TextSecondary
                 )
                 Text(
                     text = "1. 'Geliştirici Seçeneklerini Aç' butonuna dokunun.\n" +
@@ -633,7 +615,7 @@ fun AnimationGuideDialog(
                             "   • Geçiş animasyonu ölçeği\n" +
                             "   • Animatör süre ölçeği",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextPrimary,
+                    color = OptivaColors.TextPrimary,
                     lineHeight = 22.sp
                 )
             }
@@ -644,17 +626,17 @@ fun AnimationGuideDialog(
                     openDeveloperSettings(context)
                     onDismiss()
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = NeonCyan, contentColor = DeepObsidian)
+                colors = ButtonDefaults.buttonColors(containerColor = OptivaColors.BrandPrimary, contentColor = OptivaColors.CanvasBase)
             ) {
                 Text("Geliştirici Seçeneklerini Aç", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Kapat", color = TextSecondary)
+                Text("Kapat", color = OptivaColors.TextSecondary)
             }
         },
-        containerColor = DarkSurfaceCard,
+        containerColor = OptivaColors.SurfaceElevated,
         shape = RoundedCornerShape(20.dp)
     )
 }

@@ -2,4 +2,10 @@
     <string name="app_name">Optiva X</string>
     <string name="accessibility_service_label">Optiva X Otomatik Önbellek Temizleyici</string>
     <string name="accessibility_service_description">Optiva X, seçtiğiniz uygulamaların gereksiz sistem önbelleklerini (Instagram, TikTok, YouTube vb.) otomatik olarak temizlemek için bu servisi kullanır. Kişisel verileriniz asla okunmaz veya saklanmaz.</string>
+    <string name="media_disclosure_title">Fotoğraf, video ve ses verilerine erişim</string>
+    <string name="media_disclosure_body">Optiva X, depolama analizi ve medya temizliği için izin verdiğiniz fotoğraf, video ve ses dosyalarına; dosya adı, konumu, boyutu ve tarih bilgilerine cihazınızda erişir. Fotoğraf içeriği benzer, kopya ve bulanık fotoğrafları ve ekran görüntülerini bulmak için cihazınızda analiz edilir.\n\nTarama sonuçları ve dosya bilgileri uygulamanın yerel veritabanında önbelleğe alınabilir. Çöp kutusuna taşıdığınız dosyaların kopyaları, geri yükleme veya kalıcı silme için cihazınızdaki uygulama alanında tutulur.\n\nBu medya dosyaları ve tarama verileri sunucuya yüklenmez veya üçüncü taraflarla paylaşılmaz; uygulamanın bulut yedeklemesi kapalıdır. Arka plan hatırlatıcıları fotoğraflarınızı taramaz.\n\nKabul ederseniz Android medya erişim izni istenecektir. İzni reddedebilir veya daha sonra Android ayarlarından kaldırabilirsiniz. Silme işlemleri seçiminiz ve gerekli Android onayı ile yapılır.</string>
+    <string name="media_disclosure_accept">Kabul et ve devam et</string>
+    <string name="media_disclosure_decline">Şimdi değil</string>
+    <string name="media_disclosure_declined">Onay vermediniz. Medya taraması başlatılmadı. Devam etmek istediğinizde açıklamayı tekrar inceleyebilirsiniz.</string>
+    <string name="media_disclosure_review">Açıklamayı tekrar göster</string>
 </resources>

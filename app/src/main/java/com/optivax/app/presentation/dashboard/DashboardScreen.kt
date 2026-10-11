@@ -3,15 +3,12 @@ package com.optivax.app.presentation.dashboard
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import com.optivax.app.R
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,14 +20,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.CleaningServices
-import androidx.compose.material.icons.filled.FolderZip
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RocketLaunch
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,50 +43,40 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.optivax.app.R
 import com.optivax.app.core.FileUtils
 import com.optivax.app.core.PermissionHelper
 import com.optivax.app.presentation.components.AnimationGuideDialog
 import com.optivax.app.presentation.components.DeepCacheCleanerDialog
 import com.optivax.app.presentation.components.HudCircularGauge
-import com.optivax.app.presentation.components.OptivaButton
 import com.optivax.app.presentation.components.OptivaGlassCard
-import androidx.compose.material.icons.filled.Bolt
 import com.optivax.app.presentation.components.PermissionPromptCard
 import com.optivax.app.presentation.components.StorageProgressBar
-import com.optivax.app.presentation.theme.CyberAmber
-import com.optivax.app.presentation.theme.CyberPurple
-import com.optivax.app.presentation.theme.DarkSurfaceCard
-import com.optivax.app.presentation.theme.DeepObsidian
-import com.optivax.app.presentation.theme.GlassBorder
-import com.optivax.app.presentation.theme.NeonCoral
-import com.optivax.app.presentation.theme.NeonCyan
-import com.optivax.app.presentation.theme.NeonEmerald
-import com.optivax.app.presentation.theme.TextPrimary
-import com.optivax.app.presentation.theme.TextSecondary
+import com.optivax.app.presentation.theme.OptivaColors
 
 @Composable
 fun DashboardScreen(
-    onNavigateToStorageClean: () -> Unit,
+    onNavigateToGallery: () -> Unit,
+    onNavigateToFiles: () -> Unit,
     onNavigateToAppManager: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    var showAnimationGuide by remember { mutableStateOf(false) }
     var showDeepCacheCleaner by remember { mutableStateOf(false) }
+    var showAnimationGuide by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadDashboard()
-    }
-
-    if (showAnimationGuide) {
-        AnimationGuideDialog(onDismiss = { showAnimationGuide = false })
     }
 
     if (showDeepCacheCleaner) {
@@ -100,9 +87,15 @@ fun DashboardScreen(
         )
     }
 
+    if (showAnimationGuide) {
+        AnimationGuideDialog(
+            onDismiss = { showAnimationGuide = false }
+        )
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = DeepObsidian
+        color = OptivaColors.CanvasBase
     ) {
         Column(
             modifier = Modifier
@@ -124,13 +117,13 @@ fun DashboardScreen(
                     modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Crisp Brand Logo with subtle glow border
+                    // Crisp Brand Logo with subtle border
                     Box(
                         modifier = Modifier
                             .size(42.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color.White)
-                            .border(1.2.dp, NeonCyan.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                            .border(1.dp, OptivaColors.BorderBrand, RoundedCornerShape(12.dp))
                             .padding(2.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -149,7 +142,7 @@ fun DashboardScreen(
                             Text(
                                 text = "OPTIVA",
                                 style = MaterialTheme.typography.headlineMedium,
-                                color = TextPrimary,
+                                color = OptivaColors.TextPrimary,
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 2.sp
                             )
@@ -157,7 +150,7 @@ fun DashboardScreen(
                             Text(
                                 text = "X",
                                 style = MaterialTheme.typography.headlineMedium,
-                                color = NeonCyan,
+                                color = OptivaColors.BrandPrimary,
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 2.sp
                             )
@@ -165,13 +158,13 @@ fun DashboardScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(NeonCyan.copy(alpha = 0.15f))
-                                    .border(0.8.dp, NeonCyan.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                                    .background(OptivaColors.BrandPrimaryContainer)
+                                    .border(0.8.dp, OptivaColors.BorderBrand, RoundedCornerShape(8.dp))
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text(
                                     text = "PRO AI",
-                                    color = NeonCyan,
+                                    color = OptivaColors.BrandPrimary,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 9.sp
                                 )
@@ -180,7 +173,7 @@ fun DashboardScreen(
                         Text(
                             text = "Akıllı Cihaz Optimizasyon ve Hijyen Motoru",
                             style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
+                            color = OptivaColors.TextSecondary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -193,12 +186,12 @@ fun DashboardScreen(
                     onClick = { viewModel.refreshDashboard() },
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(NeonCyan.copy(alpha = 0.1f))
+                        .background(OptivaColors.SurfaceInteractive)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Yenile",
-                        tint = NeonCyan
+                        tint = OptivaColors.BrandPrimary
                     )
                 }
             }
@@ -206,13 +199,13 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(18.dp))
 
             // Permission Prompts if missing
-            if (!uiState.hasAllFilesPermission) {
+            if (!uiState.hasStoragePermission) {
                 PermissionPromptCard(
-                    title = "Tüm Dosyalara Erişim İzni Gerekli",
-                    description = "Çift dosyaları, gizli kopyaları ve artık verileri tespit edebilmek için dosya yöneticisi erişimini açın.",
-                    actionText = "Dosya İznini Aç",
+                    title = "Medya ve Depolama İzni Gerekli",
+                    description = "Fotoğrafları, videoları ve indirilen dosyaları analiz edebilmek için medya erişim iznini etkinleştirin.",
+                    actionText = "İzni Yönet",
                     onActionClick = {
-                        val intent = PermissionHelper.getAllFilesAccessIntent(context)
+                        val intent = PermissionHelper.getAppSettingsIntent(context)
                         context.startActivity(intent)
                     }
                 )
@@ -233,7 +226,7 @@ fun DashboardScreen(
             }
 
             // Hero HUD Telemetry Circular Gauge Card
-            OptivaGlassCard(borderColor = NeonCyan.copy(alpha = 0.28f)) {
+            OptivaGlassCard(borderColor = OptivaColors.BorderSubtle) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -257,9 +250,9 @@ fun DashboardScreen(
 
             // Bento Hero 1-Tap Smart Clean Action Card
             OptivaGlassCard(
-                borderColor = NeonEmerald.copy(alpha = 0.65f),
-                backgroundColor = DarkSurfaceCard.copy(alpha = 0.95f),
-                onClick = onNavigateToStorageClean
+                borderColor = OptivaColors.BorderBrand,
+                backgroundColor = OptivaColors.SurfaceCard,
+                onClick = onNavigateToFiles
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -269,17 +262,13 @@ fun DashboardScreen(
                         modifier = Modifier
                             .size(50.dp)
                             .clip(CircleShape)
-                            .background(
-                                Brush.linearGradient(
-                                    listOf(NeonEmerald, NeonCyan)
-                                )
-                            ),
+                            .background(OptivaColors.BrandPrimary),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.RocketLaunch,
                             contentDescription = null,
-                            tint = DeepObsidian,
+                            tint = OptivaColors.CanvasBase,
                             modifier = Modifier.size(26.dp)
                         )
                     }
@@ -288,9 +277,9 @@ fun DashboardScreen(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "TEK DOKUNUŞLA OPTİMİZE ET",
+                            text = "TEK DOKUNUŞLA HIZLI TEMİZLİK",
                             style = MaterialTheme.typography.titleMedium,
-                            color = TextPrimary,
+                            color = OptivaColors.TextPrimary,
                             fontWeight = FontWeight.Black,
                             fontSize = 13.5.sp,
                             maxLines = 1,
@@ -302,7 +291,7 @@ fun DashboardScreen(
                         Text(
                             text = "Klonlar, kurulu APK'lar ve kalıntı çöpleri anında tara",
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary,
+                            color = OptivaColors.TextSecondary,
                             fontSize = 11.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -314,12 +303,12 @@ fun DashboardScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(NeonEmerald)
+                            .background(OptivaColors.BrandPrimary)
                             .padding(horizontal = 10.dp, vertical = 6.dp)
                     ) {
                         Text(
                             text = "BAŞLAT",
-                            color = DeepObsidian,
+                            color = OptivaColors.CanvasBase,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Black
                         )
@@ -329,49 +318,9 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Total Freed Space Card (if any cleaned)
-            if (uiState.totalFreedBytes > 0L) {
-                OptivaGlassCard(borderColor = NeonEmerald.copy(alpha = 0.35f)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(NeonEmerald.copy(alpha = 0.15f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.RocketLaunch,
-                                contentDescription = null,
-                                tint = NeonEmerald,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Column {
-                            Text(
-                                text = "Sistem Tarafından Kurtarılan Alan",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary
-                            )
-                            Text(
-                                text = FileUtils.formatFileSize(uiState.totalFreedBytes),
-                                style = MaterialTheme.typography.titleLarge,
-                                color = NeonEmerald,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Deep Cache Cleaner Smart Suggestion Hero Card
+            // Smart Suggestion 1: Deep Cache Cleaner Hero Card
             OptivaGlassCard(
-                borderColor = NeonEmerald.copy(alpha = 0.5f),
+                borderColor = OptivaColors.BorderSubtle,
                 onClick = { showDeepCacheCleaner = true }
             ) {
                 Row(
@@ -382,13 +331,13 @@ fun DashboardScreen(
                         modifier = Modifier
                             .size(46.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(NeonEmerald.copy(alpha = 0.15f)),
+                            .background(OptivaColors.BrandPrimaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Bolt,
                             contentDescription = null,
-                            tint = NeonEmerald,
+                            tint = OptivaColors.BrandPrimary,
                             modifier = Modifier.size(26.dp)
                         )
                     }
@@ -402,7 +351,7 @@ fun DashboardScreen(
                             Text(
                                 text = "Derin Önbellek Temizliği",
                                 style = MaterialTheme.typography.titleSmall,
-                                color = TextPrimary,
+                                color = OptivaColors.TextPrimary,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -410,12 +359,12 @@ fun DashboardScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(NeonEmerald.copy(alpha = 0.15f))
+                                    .background(OptivaColors.BrandPrimaryContainer)
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text(
                                     text = if (uiState.totalCacheBytes > 0L) FileUtils.formatFileSize(uiState.totalCacheBytes) else "Erişilebilirlik",
-                                    color = NeonEmerald,
+                                    color = OptivaColors.BrandPrimary,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Black
                                 )
@@ -425,7 +374,7 @@ fun DashboardScreen(
                         Text(
                             text = "Instagram, TikTok ve YouTube gibi dev uygulamaların gizli önbelleklerini otomatik temizleyin.",
                             style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
+                            color = OptivaColors.TextSecondary,
                             fontSize = 11.sp,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
@@ -436,144 +385,161 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 2x2 Cyber Telemetry Matrix
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            // Smart Suggestion 2: 0.5x Speed Optimization Engine
+            OptivaGlassCard(
+                borderColor = OptivaColors.BorderSubtle,
+                onClick = { showAnimationGuide = true }
             ) {
-                // Card 1: Galeri & Klonlar
-                OptivaGlassCard(
-                    modifier = Modifier.weight(1f),
-                    borderColor = CyberPurple.copy(alpha = 0.4f),
-                    onClick = onNavigateToStorageClean
-                ) {
-                    Column {
-                        Icon(
-                            imageVector = Icons.Default.FolderZip,
-                            contentDescription = null,
-                            tint = CyberPurple,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    // Header Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(OptivaColors.BrandPrimaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Speed,
+                                contentDescription = null,
+                                tint = OptivaColors.BrandPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "0.5x Hızlandırma Motoru",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = OptivaColors.TextPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(OptivaColors.BrandPrimaryContainer)
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "2x Seri",
+                                        color = OptivaColors.BrandPrimary,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Black
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Sistem pencere ve geçiş animasyonlarını hızlandırın.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = OptivaColors.TextSecondary,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Notice / Prerequisite Box (Must enable Developer Options first)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(OptivaColors.WarningContainer)
+                            .border(1.dp, OptivaColors.Warning.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+                            .padding(12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.Top) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = OptivaColors.Warning,
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .padding(top = 1.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Önemli Not: Geliştirici Seçeneklerini Açın",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = OptivaColors.Warning,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp
+                                )
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Text(
+                                    text = "Bu ayarları uygulayabilmek için telefonunuzda Geliştirici Seçenekleri'ni kendinizin önceden açması gerekir:\nAyarlar > Telefon Hakkında > 'Derleme Numarası'na (Build Number) 7 kez art arda dokunun.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = OptivaColors.TextPrimary.copy(alpha = 0.95f),
+                                    fontSize = 11.sp,
+                                    lineHeight = 16.sp
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Steps Checklist
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(OptivaColors.SurfaceSub)
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         Text(
-                            text = "Galeri & Klonlar",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = "Benzerler & Klonlar",
+                            text = "Yapılacak Adımlar (Çizim Bölümü):",
                             style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            color = OptivaColors.BrandPrimary,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 11.sp
+                        )
+                        Text(
+                            text = "• Pencere animasyonu ölçeği  ➜  0.5x\n" +
+                                    "• Geçiş animasyonu ölçeği       ➜  0.5x\n" +
+                                    "• Animatör süre ölçeği              ➜  0.5x",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = OptivaColors.TextPrimary,
+                            fontSize = 11.5.sp,
+                            lineHeight = 18.sp,
+                            fontWeight = FontWeight.Medium
                         )
                     }
-                }
 
-                // Card 2: Dosya & APK Avcısı
-                OptivaGlassCard(
-                    modifier = Modifier.weight(1f),
-                    borderColor = NeonCoral.copy(alpha = 0.4f),
-                    onClick = onNavigateToStorageClean
-                ) {
-                    Column {
-                        Icon(
-                            imageVector = Icons.Default.CleaningServices,
-                            contentDescription = null,
-                            tint = NeonCoral,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Dosya Avcısı",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = "Kurulu APK & Çöpler",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
+                    Spacer(modifier = Modifier.height(14.dp))
 
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                // Card 3: Idle Apps
-                OptivaGlassCard(
-                    modifier = Modifier.weight(1f),
-                    borderColor = NeonCyan.copy(alpha = 0.35f),
-                    onClick = onNavigateToAppManager
-                ) {
-                    Column {
-                        Icon(
-                            imageVector = Icons.Default.Apps,
-                            contentDescription = null,
-                            tint = NeonCyan,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Atıl Uygulama",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = "${uiState.idleAppsCount} Atıl Bulundu",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (uiState.idleAppsCount > 0) CyberAmber else TextSecondary,
-                            fontWeight = if (uiState.idleAppsCount > 0) FontWeight.Bold else FontWeight.Normal,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-
-                // Card 4: 0.5x Speedup Guide
-                OptivaGlassCard(
-                    modifier = Modifier.weight(1f),
-                    borderColor = NeonEmerald.copy(alpha = 0.35f),
-                    onClick = { showAnimationGuide = true }
-                ) {
-                    Column {
+                    // Action Button to trigger dialog & settings
+                    Button(
+                        onClick = { showAnimationGuide = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = OptivaColors.BrandPrimary,
+                            contentColor = OptivaColors.CanvasBase
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Speed,
                             contentDescription = null,
-                            tint = NeonEmerald,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "0.5x Motoru",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = "2x Hızlandırıcı",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = NeonEmerald,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            text = "Hızlandırma Rehberini & Ayarları Aç",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }

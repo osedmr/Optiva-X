@@ -8,7 +8,6 @@ import com.optivax.app.core.Constants
 import com.optivax.app.core.PermissionHelper
 import com.optivax.app.core.Resource
 import com.optivax.app.core.notification.OptivaBannerController
-import com.optivax.app.data.local.CleanHistoryDao
 import com.optivax.app.domain.model.AppUsageInfo
 import com.optivax.app.domain.model.StorageBreakdown
 import com.optivax.app.domain.repository.AppManagerRepository
@@ -27,7 +26,6 @@ import javax.inject.Inject
 data class DashboardUiState(
     val isLoading: Boolean = true,
     val storageBreakdown: StorageBreakdown? = null,
-    val totalFreedBytes: Long = 0L,
     val idleAppsCount: Int = 0,
     val installedApps: List<AppUsageInfo> = emptyList(),
     val hasUsagePermission: Boolean = false,
@@ -43,7 +41,6 @@ class DashboardViewModel @Inject constructor(
     private val getStorageStatsUseCase: GetStorageStatsUseCase,
     private val getIdleAppsUseCase: GetIdleAppsUseCase,
     private val appManagerRepository: AppManagerRepository,
-    private val cleanHistoryDao: CleanHistoryDao,
     private val bannerController: OptivaBannerController,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -55,24 +52,22 @@ class DashboardViewModel @Inject constructor(
 
     init {
         checkPermissions()
-        observeCleanHistory()
         loadDashboard()
     }
 
     fun checkPermissions() {
         val hasUsage = PermissionHelper.hasUsageStatsPermission(context)
-        val hasAllFiles = PermissionHelper.hasAllFilesAccess(context)
         val hasStorage = PermissionHelper.hasStoragePermission(context)
 
         Log.d(
             Constants.TAG,
-            "[DASHBOARD] Permissions checked -> Usage: $hasUsage, AllFiles: $hasAllFiles, Storage: $hasStorage"
+            "[DASHBOARD] Permissions checked -> Usage: $hasUsage, Storage: $hasStorage"
         )
 
         _uiState.update {
             it.copy(
                 hasUsagePermission = hasUsage,
-                hasAllFilesPermission = hasAllFiles,
+                hasAllFilesPermission = hasStorage,
                 hasStoragePermission = hasStorage
             )
         }
@@ -141,13 +136,5 @@ class DashboardViewModel @Inject constructor(
             title = "Telemetri Yenilendi",
             message = "Depolama ve bellek durum verileri güncellendi."
         )
-    }
-
-    private fun observeCleanHistory() {
-        viewModelScope.launch {
-            cleanHistoryDao.getTotalFreedBytes().collectLatest { freed ->
-                _uiState.update { it.copy(totalFreedBytes = freed ?: 0L) }
-            }
-        }
     }
 }

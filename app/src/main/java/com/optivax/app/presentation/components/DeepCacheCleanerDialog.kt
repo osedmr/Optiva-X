@@ -79,17 +79,7 @@ import com.optivax.app.core.accessibility.CacheCleanAutomationManager
 import com.optivax.app.core.accessibility.CacheCleanState
 import com.optivax.app.core.accessibility.CacheTargetApp
 import com.optivax.app.domain.model.AppUsageInfo
-import com.optivax.app.presentation.theme.CyberAmber
-import com.optivax.app.presentation.theme.CyberPurple
-import com.optivax.app.presentation.theme.DarkSurfaceCard
-import com.optivax.app.presentation.theme.DarkSurfaceVariant
-import com.optivax.app.presentation.theme.DeepObsidian
-import com.optivax.app.presentation.theme.NeonCyan
-import com.optivax.app.presentation.theme.NeonEmerald
-import com.optivax.app.presentation.theme.OutlineDark
-import com.optivax.app.presentation.theme.TextMuted
-import com.optivax.app.presentation.theme.TextPrimary
-import com.optivax.app.presentation.theme.TextSecondary
+import com.optivax.app.presentation.theme.OptivaColors
 
 @Composable
 fun DeepCacheCleanerDialog(
@@ -133,8 +123,8 @@ fun DeepCacheCleanerDialog(
                 .fillMaxWidth(0.96f)
                 .fillMaxHeight(0.90f)
                 .clip(RoundedCornerShape(24.dp))
-                .border(1.2.dp, NeonEmerald.copy(alpha = 0.5f), RoundedCornerShape(24.dp)),
-            color = DarkSurfaceCard.copy(alpha = 0.98f)
+                .border(1.dp, OptivaColors.BorderSubtle, RoundedCornerShape(24.dp)),
+            color = OptivaColors.SurfaceElevated
         ) {
             Column(
                 modifier = Modifier
@@ -152,13 +142,13 @@ fun DeepCacheCleanerDialog(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(NeonEmerald.copy(alpha = 0.15f)),
+                                .background(OptivaColors.BrandPrimaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Bolt,
                                 contentDescription = null,
-                                tint = NeonEmerald,
+                                tint = OptivaColors.BrandPrimary,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -167,13 +157,13 @@ fun DeepCacheCleanerDialog(
                             Text(
                                 text = "Derin Önbellek Temizleyici",
                                 style = MaterialTheme.typography.titleMedium,
-                                color = TextPrimary,
+                                color = OptivaColors.TextPrimary,
                                 fontWeight = FontWeight.Black
                             )
                             Text(
                                 text = "Erişilebilirlik ile Otomatik Sıfırlama",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = NeonEmerald,
+                                color = OptivaColors.BrandPrimary,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -190,7 +180,7 @@ fun DeepCacheCleanerDialog(
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Kapat",
-                                tint = TextSecondary
+                                tint = OptivaColors.TextSecondary
                             )
                         }
                     }
@@ -273,7 +263,7 @@ private fun IdleCacheCleanView(
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         // Hero Card
-        OptivaGlassCard(borderColor = NeonEmerald.copy(alpha = 0.4f)) {
+        OptivaGlassCard(borderColor = OptivaColors.BorderSubtle) {
             Column {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -284,12 +274,12 @@ private fun IdleCacheCleanView(
                         Text(
                             text = "Temizlenebilir Gizli Önbellek",
                             style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary
+                            color = OptivaColors.TextSecondary
                         )
                         Text(
                             text = FileUtils.formatFileSize(totalCacheBytes),
                             style = MaterialTheme.typography.headlineMedium,
-                            color = NeonEmerald,
+                            color = OptivaColors.BrandPrimary,
                             fontWeight = FontWeight.Black
                         )
                     }
@@ -297,12 +287,12 @@ private fun IdleCacheCleanView(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(NeonEmerald.copy(alpha = 0.15f))
+                            .background(OptivaColors.BrandPrimaryContainer)
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
                             text = "${cacheApps.size} Uygulama",
-                            color = NeonEmerald,
+                            color = OptivaColors.BrandPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 11.sp
                         )
@@ -315,14 +305,14 @@ private fun IdleCacheCleanView(
                     Icon(
                         imageVector = Icons.Default.Security,
                         contentDescription = null,
-                        tint = NeonCyan,
+                        tint = OptivaColors.TextMuted,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Kişisel oturum, sohbet veya hesap verileriniz silinmez.",
                         style = MaterialTheme.typography.labelSmall,
-                        color = NeonCyan,
+                        color = OptivaColors.TextSecondary,
                         fontSize = 11.sp
                     )
                 }
@@ -333,13 +323,13 @@ private fun IdleCacheCleanView(
 
         // Accessibility Service permission banner if not enabled
         if (!isServiceConnected) {
-            OptivaGlassCard(borderColor = CyberAmber.copy(alpha = 0.6f)) {
+            OptivaGlassCard(borderColor = OptivaColors.Warning.copy(alpha = 0.5f)) {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "⚠️ Erişilebilirlik Hizmeti Gerekli",
                             style = MaterialTheme.typography.titleSmall,
-                            color = CyberAmber,
+                            color = OptivaColors.Warning,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -347,7 +337,7 @@ private fun IdleCacheCleanView(
                     Text(
                         text = "Android güvenlik kuralları gereği, üçüncü parti uygulamaların önbellekleri doğrudan silinemez. Optiva X, Erişilebilirlik Servisi ile sizin yerinize bu işlemi saniyeler içinde otomatik olarak gerçekleştirir.",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
+                        color = OptivaColors.TextSecondary,
                         fontSize = 11.sp
                     )
                     Spacer(modifier = Modifier.height(10.dp))
@@ -364,13 +354,13 @@ private fun IdleCacheCleanView(
                         Icon(
                             imageVector = Icons.Default.OpenInNew,
                             contentDescription = null,
-                            tint = CyberAmber,
+                            tint = OptivaColors.Warning,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Erişilebilirlik Ayarlarını Aç",
-                            color = CyberAmber,
+                            color = OptivaColors.Warning,
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp
                         )
@@ -389,15 +379,15 @@ private fun IdleCacheCleanView(
             Text(
                 text = "${selectedPackages.size} / ${cacheApps.size} seçili",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary,
+                color = OptivaColors.TextSecondary,
                 fontWeight = FontWeight.SemiBold
             )
             Row {
                 TextButton(onClick = onSelectAll) {
-                    Text("Tümünü Seç", color = NeonCyan, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text("Tümünü Seç", color = OptivaColors.BrandPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 TextButton(onClick = onDeselectAll) {
-                    Text("Kaldır", color = TextMuted, fontSize = 11.sp)
+                    Text("Kaldır", color = OptivaColors.TextMuted, fontSize = 11.sp)
                 }
             }
         }
@@ -425,10 +415,10 @@ private fun IdleCacheCleanView(
             onClick = onStartClean,
             enabled = selectedPackages.isNotEmpty() && isServiceConnected,
             colors = ButtonDefaults.buttonColors(
-                containerColor = NeonEmerald,
-                contentColor = DeepObsidian,
-                disabledContainerColor = DarkSurfaceVariant,
-                disabledContentColor = TextMuted
+                containerColor = OptivaColors.BrandPrimary,
+                contentColor = OptivaColors.CanvasBase,
+                disabledContainerColor = OptivaColors.SurfaceElevated,
+                disabledContentColor = OptivaColors.TextMuted
             ),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
@@ -470,10 +460,10 @@ private fun CacheAppItemRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(DarkSurfaceVariant.copy(alpha = if (isChecked) 0.5f else 0.25f))
+            .background(if (isChecked) OptivaColors.BrandPrimaryContainer.copy(alpha = 0.25f) else OptivaColors.SurfaceElevated.copy(alpha = 0.4f))
             .border(
                 1.dp,
-                if (isChecked) NeonEmerald.copy(alpha = 0.5f) else OutlineDark,
+                if (isChecked) OptivaColors.BorderBrand.copy(alpha = 0.6f) else OptivaColors.BorderSubtle,
                 RoundedCornerShape(14.dp)
             )
             .clickable { onToggle() }
@@ -484,8 +474,9 @@ private fun CacheAppItemRow(
             checked = isChecked,
             onCheckedChange = { onToggle() },
             colors = CheckboxDefaults.colors(
-                checkedColor = NeonEmerald,
-                uncheckedColor = TextMuted
+                checkedColor = OptivaColors.BrandPrimary,
+                checkmarkColor = OptivaColors.CanvasBase,
+                uncheckedColor = OptivaColors.TextMuted
             )
         )
 
@@ -506,13 +497,13 @@ private fun CacheAppItemRow(
                 modifier = Modifier
                     .size(38.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(NeonCyan.copy(alpha = 0.15f)),
+                    .background(OptivaColors.BrandPrimaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Speed,
                     contentDescription = null,
-                    tint = NeonCyan,
+                    tint = OptivaColors.BrandPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -524,7 +515,7 @@ private fun CacheAppItemRow(
             Text(
                 text = app.appName,
                 style = MaterialTheme.typography.titleSmall,
-                color = TextPrimary,
+                color = OptivaColors.TextPrimary,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -532,7 +523,7 @@ private fun CacheAppItemRow(
             Text(
                 text = app.packageName,
                 style = MaterialTheme.typography.labelSmall,
-                color = TextMuted,
+                color = OptivaColors.TextMuted,
                 fontSize = 10.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -544,12 +535,12 @@ private fun CacheAppItemRow(
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
-                .background(NeonEmerald.copy(alpha = 0.15f))
+                .background(OptivaColors.BrandPrimaryContainer)
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
                 text = app.formattedCacheSize,
-                color = NeonEmerald,
+                color = OptivaColors.BrandPrimary,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Black
             )
@@ -585,14 +576,14 @@ private fun RunningCacheCleanView(
                 .size(90.dp)
                 .scale(pulseScale)
                 .clip(CircleShape)
-                .background(NeonEmerald.copy(alpha = 0.15f))
-                .border(2.dp, NeonEmerald.copy(alpha = 0.8f), CircleShape),
+                .background(OptivaColors.BrandPrimaryContainer)
+                .border(2.dp, OptivaColors.BrandPrimary, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Bolt,
                 contentDescription = null,
-                tint = NeonEmerald,
+                tint = OptivaColors.BrandPrimary,
                 modifier = Modifier.size(46.dp)
             )
         }
@@ -602,7 +593,7 @@ private fun RunningCacheCleanView(
         Text(
             text = "Otomatik Önbellek Temizliği",
             style = MaterialTheme.typography.titleLarge,
-            color = TextPrimary,
+            color = OptivaColors.TextPrimary,
             fontWeight = FontWeight.Black
         )
 
@@ -611,7 +602,7 @@ private fun RunningCacheCleanView(
         Text(
             text = state.statusMessage,
             style = MaterialTheme.typography.bodyMedium,
-            color = NeonEmerald,
+            color = OptivaColors.BrandPrimary,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
@@ -621,7 +612,7 @@ private fun RunningCacheCleanView(
         Text(
             text = "İlerleyiş: ${state.currentIndex} / ${state.totalCount}",
             style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary
+            color = OptivaColors.TextSecondary
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -633,8 +624,8 @@ private fun RunningCacheCleanView(
                 .fillMaxWidth(0.85f)
                 .height(8.dp)
                 .clip(RoundedCornerShape(4.dp)),
-            color = NeonEmerald,
-            trackColor = DarkSurfaceVariant,
+            color = OptivaColors.BrandPrimary,
+            trackColor = OptivaColors.SurfaceElevated,
             strokeCap = StrokeCap.Round
         )
 
@@ -643,14 +634,14 @@ private fun RunningCacheCleanView(
         Button(
             onClick = onCancel,
             colors = ButtonDefaults.buttonColors(
-                containerColor = DarkSurfaceVariant,
-                contentColor = TextPrimary
+                containerColor = OptivaColors.WarningContainer,
+                contentColor = OptivaColors.Warning
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Icon(imageVector = Icons.Default.Stop, contentDescription = null, tint = CyberAmber, modifier = Modifier.size(18.dp))
+            Icon(imageVector = Icons.Default.Stop, contentDescription = null, tint = OptivaColors.Warning, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(6.dp))
-            Text("İşlemi Durdur", color = CyberAmber, fontWeight = FontWeight.Bold)
+            Text("İşlemi Durdur", color = OptivaColors.Warning, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -671,14 +662,14 @@ private fun CompletedCacheCleanView(
             modifier = Modifier
                 .size(72.dp)
                 .clip(CircleShape)
-                .background(NeonEmerald.copy(alpha = 0.15f))
-                .border(2.dp, NeonEmerald, CircleShape),
+                .background(OptivaColors.SuccessContainer)
+                .border(2.dp, OptivaColors.Success, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = null,
-                tint = NeonEmerald,
+                tint = OptivaColors.Success,
                 modifier = Modifier.size(44.dp)
             )
         }
@@ -688,7 +679,7 @@ private fun CompletedCacheCleanView(
         Text(
             text = "Temizlik Başarıyla Tamamlandı!",
             style = MaterialTheme.typography.titleLarge,
-            color = TextPrimary,
+            color = OptivaColors.TextPrimary,
             fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center
         )
@@ -698,7 +689,7 @@ private fun CompletedCacheCleanView(
         Text(
             text = "${state.cleanedCount} uygulamanın önbelleği temizlendi.\nToplam ${FileUtils.formatFileSize(state.totalFreedBytes)} depolama alanı geri kazanıldı.",
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = OptivaColors.TextSecondary,
             textAlign = TextAlign.Center
         )
 
@@ -707,8 +698,8 @@ private fun CompletedCacheCleanView(
         Button(
             onClick = onDone,
             colors = ButtonDefaults.buttonColors(
-                containerColor = NeonEmerald,
-                contentColor = DeepObsidian
+                containerColor = OptivaColors.BrandPrimary,
+                contentColor = OptivaColors.CanvasBase
             ),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier
@@ -734,21 +725,21 @@ private fun CancelledCacheCleanView(
         Text(
             text = "Temizlik İşlemi Durduruldu",
             style = MaterialTheme.typography.titleMedium,
-            color = CyberAmber,
+            color = OptivaColors.Warning,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "İşlem sizin isteğiniz üzerine durduruldu.",
             style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary
+            color = OptivaColors.TextSecondary
         )
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = onClose,
             colors = ButtonDefaults.buttonColors(
-                containerColor = DarkSurfaceVariant,
-                contentColor = TextPrimary
+                containerColor = OptivaColors.SurfaceElevated,
+                contentColor = OptivaColors.TextPrimary
             )
         ) {
             Text("Kapat")

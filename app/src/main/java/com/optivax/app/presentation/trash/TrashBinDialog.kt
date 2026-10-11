@@ -57,18 +57,7 @@ import com.optivax.app.core.FileUtils
 import com.optivax.app.core.rememberThumbnailState
 import com.optivax.app.domain.model.TrashItem
 import com.optivax.app.presentation.components.OptivaGlassCard
-import com.optivax.app.presentation.theme.CyberAmber
-import com.optivax.app.presentation.theme.CyberPurple
-import com.optivax.app.presentation.theme.DarkSurfaceCard
-import com.optivax.app.presentation.theme.DarkSurfaceVariant
-import com.optivax.app.presentation.theme.DeepObsidian
-import com.optivax.app.presentation.theme.GlassBorder
-import com.optivax.app.presentation.theme.NeonCoral
-import com.optivax.app.presentation.theme.NeonCyan
-import com.optivax.app.presentation.theme.NeonEmerald
-import com.optivax.app.presentation.theme.TextMuted
-import com.optivax.app.presentation.theme.TextPrimary
-import com.optivax.app.presentation.theme.TextSecondary
+import com.optivax.app.presentation.theme.OptivaColors
 
 @Composable
 fun TrashBinDialog(
@@ -86,12 +75,12 @@ fun TrashBinDialog(
         AlertDialog(
             onDismissRequest = { showEmptyConfirm = false },
             title = {
-                Text("Çöp Kutusunu Boşalt", color = TextPrimary, fontWeight = FontWeight.Bold)
+                Text("Çöp Kutusunu Boşalt", color = OptivaColors.TextPrimary, fontWeight = FontWeight.Bold)
             },
             text = {
                 Text(
                     "Çöp kutusundaki tüm dosyalar (${trashItems.size} dosya, ${FileUtils.formatFileSize(totalTrashBytes)}) kalıcı olarak silinecektir. Bu işlem geri alınamaz.",
-                    color = TextSecondary
+                    color = OptivaColors.TextSecondary
                 )
             },
             confirmButton = {
@@ -100,17 +89,17 @@ fun TrashBinDialog(
                         showEmptyConfirm = false
                         onEmptyTrash()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = NeonCoral, contentColor = DeepObsidian)
+                    colors = ButtonDefaults.buttonColors(containerColor = OptivaColors.Danger, contentColor = OptivaColors.CanvasBase)
                 ) {
                     Text("Kalıcı Olarak Boşalt", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEmptyConfirm = false }) {
-                    Text("İptal", color = TextMuted)
+                    Text("İptal", color = OptivaColors.TextMuted)
                 }
             },
-            containerColor = DarkSurfaceCard
+            containerColor = OptivaColors.SurfaceElevated
         )
     }
 
@@ -123,8 +112,8 @@ fun TrashBinDialog(
                 .fillMaxWidth(0.96f)
                 .fillMaxHeight(0.88f)
                 .clip(RoundedCornerShape(24.dp))
-                .border(1.2.dp, CyberAmber.copy(alpha = 0.6f), RoundedCornerShape(24.dp)),
-            color = DarkSurfaceCard.copy(alpha = 0.98f)
+                .border(1.dp, OptivaColors.BorderSubtle, RoundedCornerShape(24.dp)),
+            color = OptivaColors.SurfaceElevated
         ) {
             Column(
                 modifier = Modifier
@@ -142,13 +131,13 @@ fun TrashBinDialog(
                             modifier = Modifier
                                 .size(42.dp)
                                 .clip(CircleShape)
-                                .background(CyberAmber.copy(alpha = 0.15f)),
+                                .background(OptivaColors.WarningContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.DeleteSweep,
                                 contentDescription = null,
-                                tint = CyberAmber,
+                                tint = OptivaColors.Warning,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -157,13 +146,13 @@ fun TrashBinDialog(
                             Text(
                                 text = "Geri Dönüşüm Kutusu",
                                 style = MaterialTheme.typography.titleLarge,
-                                color = TextPrimary,
+                                color = OptivaColors.TextPrimary,
                                 fontWeight = FontWeight.Black
                             )
                             Text(
                                 text = "Silinenler 30 gün boyunca güvenle korunur",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary,
+                                color = OptivaColors.TextSecondary,
                                 fontSize = 11.sp
                             )
                         }
@@ -174,12 +163,12 @@ fun TrashBinDialog(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(DarkSurfaceVariant)
+                            .background(OptivaColors.SurfaceCard)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Kapat",
-                            tint = TextPrimary,
+                            tint = OptivaColors.TextPrimary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -197,7 +186,7 @@ fun TrashBinDialog(
                         Text(
                             text = "${trashItems.size} Dosya • ${FileUtils.formatFileSize(totalTrashBytes)}",
                             style = MaterialTheme.typography.labelMedium,
-                            color = CyberAmber,
+                            color = OptivaColors.Warning,
                             fontWeight = FontWeight.Bold
                         )
 
@@ -206,23 +195,24 @@ fun TrashBinDialog(
                                 onClick = onRestoreAll,
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.height(34.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, OptivaColors.BrandPrimary.copy(alpha = 0.5f)),
                                 contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 0.dp)
                             ) {
-                                Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(14.dp), tint = NeonEmerald)
+                                Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(14.dp), tint = OptivaColors.BrandPrimary)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Tümünü Kurtar", fontSize = 11.sp, color = NeonEmerald, fontWeight = FontWeight.Bold)
+                                Text("Tümünü Kurtar", fontSize = 11.sp, color = OptivaColors.BrandPrimary, fontWeight = FontWeight.Bold)
                             }
 
                             Button(
                                 onClick = { showEmptyConfirm = true },
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.height(34.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = NeonCoral.copy(alpha = 0.18f), contentColor = NeonCoral),
+                                colors = ButtonDefaults.buttonColors(containerColor = OptivaColors.DangerContainer, contentColor = OptivaColors.Danger),
                                 contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 0.dp)
                             ) {
-                                Icon(Icons.Default.DeleteForever, contentDescription = null, modifier = Modifier.size(14.dp), tint = NeonCoral)
+                                Icon(Icons.Default.DeleteForever, contentDescription = null, modifier = Modifier.size(14.dp), tint = OptivaColors.Danger)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Boşalt", fontSize = 11.sp, color = NeonCoral, fontWeight = FontWeight.Bold)
+                                Text("Boşalt", fontSize = 11.sp, color = OptivaColors.Danger, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -242,13 +232,13 @@ fun TrashBinDialog(
                                 modifier = Modifier
                                     .size(64.dp)
                                     .clip(CircleShape)
-                                    .background(NeonEmerald.copy(alpha = 0.12f)),
+                                    .background(OptivaColors.BrandPrimaryContainer),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Restore,
                                     contentDescription = null,
-                                    tint = NeonEmerald,
+                                    tint = OptivaColors.BrandPrimary,
                                     modifier = Modifier.size(36.dp)
                                 )
                             }
@@ -256,14 +246,14 @@ fun TrashBinDialog(
                             Text(
                                 text = "Geri Dönüşüm Kutusu Boş",
                                 style = MaterialTheme.typography.titleMedium,
-                                color = TextPrimary,
+                                color = OptivaColors.TextPrimary,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Silinen tüm dosyalar güvende veya henüz hiçbir dosya silinmedi.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = TextSecondary
+                                color = OptivaColors.TextSecondary
                             )
                         }
                     } else {
@@ -295,7 +285,7 @@ private fun TrashItemCard(
     val thumbnail by rememberThumbnailState(item.file, targetSize = 120)
 
     OptivaGlassCard(
-        borderColor = GlassBorder
+        borderColor = OptivaColors.BorderSubtle
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -306,7 +296,7 @@ private fun TrashItemCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(DarkSurfaceVariant),
+                    .background(OptivaColors.SurfaceCard),
                 contentAlignment = Alignment.Center
             ) {
                 if (thumbnail != null) {
@@ -320,7 +310,7 @@ private fun TrashItemCard(
                     Icon(
                         imageVector = if (item.isVideo) Icons.Default.Videocam else Icons.Default.Description,
                         contentDescription = null,
-                        tint = if (item.isVideo) NeonCoral else NeonCyan,
+                        tint = if (item.isVideo) OptivaColors.Warning else OptivaColors.BrandPrimary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -332,7 +322,7 @@ private fun TrashItemCard(
                 Text(
                     text = item.fileName,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextPrimary,
+                    color = OptivaColors.TextPrimary,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -340,14 +330,14 @@ private fun TrashItemCard(
                 Text(
                     text = "${item.formattedSize} • ${item.daysRemainingUntilAutoDelete} gün kaldı",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (item.daysRemainingUntilAutoDelete <= 3) NeonCoral else CyberAmber,
+                    color = if (item.daysRemainingUntilAutoDelete <= 3) OptivaColors.Danger else OptivaColors.Warning,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = item.originalPath,
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextMuted,
+                    color = OptivaColors.TextMuted,
                     fontSize = 9.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -362,12 +352,12 @@ private fun TrashItemCard(
                 modifier = Modifier
                     .size(34.dp)
                     .clip(CircleShape)
-                    .background(NeonEmerald.copy(alpha = 0.15f))
+                    .background(OptivaColors.BrandPrimaryContainer)
             ) {
                 Icon(
                     imageVector = Icons.Default.Restore,
                     contentDescription = "Geri Yükle",
-                    tint = NeonEmerald,
+                    tint = OptivaColors.BrandPrimary,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -380,12 +370,12 @@ private fun TrashItemCard(
                 modifier = Modifier
                     .size(34.dp)
                     .clip(CircleShape)
-                    .background(NeonCoral.copy(alpha = 0.15f))
+                    .background(OptivaColors.DangerContainer)
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Kalıcı Sil",
-                    tint = NeonCoral,
+                    tint = OptivaColors.Danger,
                     modifier = Modifier.size(18.dp)
                 )
             }

@@ -10,25 +10,26 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val OptivaCyberColorScheme = darkColorScheme(
-    primary = NeonCyan,
-    onPrimary = DeepObsidian,
-    primaryContainer = DarkSurfaceVariant,
-    onPrimaryContainer = NeonCyan,
-    secondary = CyberPurple,
-    onSecondary = TextPrimary,
-    secondaryContainer = DarkSurfaceCard,
-    onSecondaryContainer = TextPrimary,
-    tertiary = NeonEmerald,
-    onTertiary = DeepObsidian,
-    background = DeepObsidian,
-    onBackground = TextPrimary,
-    surface = DarkSurface,
-    onSurface = TextPrimary,
-    surfaceVariant = DarkSurfaceVariant,
-    onSurfaceVariant = TextSecondary,
-    outline = OutlineDark,
-    error = NeonCoral,
-    onError = TextPrimary
+    primary = OptivaColors.BrandPrimary,
+    onPrimary = OptivaColors.CanvasBase,
+    primaryContainer = OptivaColors.BrandPrimaryContainer,
+    onPrimaryContainer = OptivaColors.BrandPrimary,
+    secondary = OptivaColors.Info,
+    onSecondary = OptivaColors.CanvasBase,
+    secondaryContainer = OptivaColors.SurfaceElevated,
+    onSecondaryContainer = OptivaColors.TextPrimary,
+    tertiary = OptivaColors.Success,
+    onTertiary = OptivaColors.CanvasBase,
+    background = OptivaColors.CanvasBase,
+    onBackground = OptivaColors.TextPrimary,
+    surface = OptivaColors.SurfaceCard,
+    onSurface = OptivaColors.TextPrimary,
+    surfaceVariant = OptivaColors.SurfaceSub,
+    onSurfaceVariant = OptivaColors.TextSecondary,
+    outline = OptivaColors.BorderSubtle,
+    outlineVariant = OptivaColors.BorderBrand,
+    error = OptivaColors.Danger,
+    onError = OptivaColors.CanvasBase
 )
 
 @Composable

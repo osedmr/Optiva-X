@@ -7,6 +7,7 @@ import android.provider.MediaStore
 import android.util.Log
 import com.optivax.app.core.Constants
 import com.optivax.app.core.FileUtils
+import com.optivax.app.core.MediaStoreHelper
 import com.optivax.app.core.Resource
 import com.optivax.app.data.local.CleanHistoryDao
 import com.optivax.app.data.local.CleanHistoryEntity
@@ -419,17 +420,11 @@ class StorageRepositoryImpl @Inject constructor(
             val externalStorage = Environment.getExternalStorageDirectory()
             val candidateDirs = mutableListOf<File>()
 
-            // 1. Android/media directory (accessible with MANAGE_EXTERNAL_STORAGE, contains app packages)
+            // 1. Android/media directory (contains public app media packages)
             val androidMedia = File(externalStorage, "Android/media")
             if (androidMedia.exists() && androidMedia.isDirectory) {
                 candidateDirs.add(androidMedia)
             }
-
-            // 2. Android/data and Android/obb
-            val dataDir = File(externalStorage, "Android/data")
-            val obbDir = File(externalStorage, "Android/obb")
-            candidateDirs.add(dataDir)
-            candidateDirs.add(obbDir)
 
             for (parentDir in candidateDirs) {
                 if (parentDir.exists() && parentDir.isDirectory) {
@@ -574,7 +569,13 @@ class StorageRepositoryImpl @Inject constructor(
                 if (file.exists() && file.isFile) {
                     val length = file.length()
                     val parent = file.parentFile
-                    val deleted = file.delete()
+                    var deleted = file.delete()
+                    if (!deleted && file.exists()) {
+                        val mediaUri = MediaStoreHelper.getMediaUriForPath(context, path)
+                        if (mediaUri != null) {
+                            deleted = MediaStoreHelper.deleteViaContentResolver(context, mediaUri)
+                        }
+                    }
                     Log.d(Constants.TAG, "[DELETE] File '$path' (size $length bytes): deleted=$deleted")
                     if (deleted) {
                         deletedCount++

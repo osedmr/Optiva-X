@@ -50,38 +50,17 @@ object PermissionHelper {
     }
 
     /**
-     * Checks if the app has All Files Access on Android 11+ (API 30+)
-     * or standard storage permissions on older versions.
+     * Checks if the app has required storage/media permissions compliant with Google Play Scoped Storage policies.
      */
     fun hasAllFilesAccess(context: Context): Boolean {
-        val hasAccess = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager()
-        } else {
-            hasStoragePermission(context)
-        }
-        Log.d(Constants.TAG, "[PERM] AllFilesAccess (API ${Build.VERSION.SDK_INT}) status: $hasAccess")
-        return hasAccess
+        return hasStoragePermission(context)
     }
 
     /**
-     * Creates an Intent to prompt the user for All Files Access on Android 11+.
+     * Creates an Intent directing the user to App Settings if permissions are denied.
      */
     fun getAllFilesAccessIntent(context: Context): Intent {
-        Log.d(Constants.TAG, "[PERM] Launching AllFilesAccess settings intent")
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            try {
-                Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                    data = Uri.parse("package:${context.packageName}")
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-            } catch (e: Exception) {
-                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-            }
-        } else {
-            getAppSettingsIntent(context)
-        }
+        return getAppSettingsIntent(context)
     }
 
     /**

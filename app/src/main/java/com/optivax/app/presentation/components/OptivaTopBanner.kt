@@ -46,15 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.optivax.app.core.notification.BannerMessage
 import com.optivax.app.core.notification.BannerType
 import com.optivax.app.core.notification.OptivaBannerController
-import com.optivax.app.presentation.theme.CyberAmber
-import com.optivax.app.presentation.theme.DarkSurfaceCard
-import com.optivax.app.presentation.theme.DarkSurfaceVariant
-import com.optivax.app.presentation.theme.NeonCoral
-import com.optivax.app.presentation.theme.NeonCyan
-import com.optivax.app.presentation.theme.NeonEmerald
-import com.optivax.app.presentation.theme.TextMuted
-import com.optivax.app.presentation.theme.TextPrimary
-import com.optivax.app.presentation.theme.TextSecondary
+import com.optivax.app.presentation.theme.OptivaColors
 
 /**
  * Top Host Composable observing the global [OptivaBannerController] and rendering
@@ -89,10 +81,10 @@ fun OptivaTopBanner(
     modifier: Modifier = Modifier
 ) {
     val accentColor: Color = when (banner.type) {
-        BannerType.SUCCESS -> NeonEmerald
-        BannerType.WARNING -> CyberAmber
-        BannerType.ERROR -> NeonCoral
-        BannerType.INFO -> NeonCyan
+        BannerType.SUCCESS -> OptivaColors.Success
+        BannerType.WARNING -> OptivaColors.Warning
+        BannerType.ERROR -> OptivaColors.Danger
+        BannerType.INFO -> OptivaColors.BrandPrimary
     }
 
     val icon: ImageVector = when (banner.type) {
@@ -105,11 +97,10 @@ fun OptivaTopBanner(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(16.dp, RoundedCornerShape(20.dp), spotColor = accentColor.copy(alpha = 0.5f))
             .clip(RoundedCornerShape(20.dp))
-            .border(1.2.dp, accentColor.copy(alpha = 0.75f), RoundedCornerShape(20.dp))
+            .border(1.dp, accentColor.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
             .clickable { onDismiss() },
-        color = DarkSurfaceCard.copy(alpha = 0.98f)
+        color = OptivaColors.SurfaceElevated
     ) {
         Row(
             modifier = Modifier
@@ -152,7 +143,7 @@ fun OptivaTopBanner(
                     Text(
                         text = message,
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
+                        color = OptivaColors.TextSecondary,
                         fontSize = 12.sp,
                         lineHeight = 16.sp,
                         maxLines = 3,
@@ -169,12 +160,12 @@ fun OptivaTopBanner(
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(DarkSurfaceVariant.copy(alpha = 0.5f))
+                    .background(OptivaColors.SurfaceInteractive)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Kapat",
-                    tint = TextMuted,
+                    tint = OptivaColors.TextMuted,
                     modifier = Modifier.size(16.dp)
                 )
             }
