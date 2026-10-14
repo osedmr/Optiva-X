@@ -46,6 +46,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.optivax.app.presentation.apps.AppManagerScreen
 import com.optivax.app.presentation.dashboard.DashboardScreen
 import com.optivax.app.presentation.files.FilesCleanScreen
+import com.optivax.app.presentation.files.FilesHomeScreen
+import com.optivax.app.presentation.files.FilesCategoryTab
 import com.optivax.app.presentation.gallery.GalleryScreen
 import com.optivax.app.presentation.theme.OptivaColors
 
@@ -56,8 +58,8 @@ data class NavigationItem(
 )
 
 val navigationItems = listOf(
-    NavigationItem(Screen.Dashboard, Icons.Default.Speed, "Temizle"),
-    NavigationItem(Screen.GalleryClean, Icons.Default.PhotoLibrary, "Galeri"),
+    NavigationItem(Screen.Dashboard, Icons.Default.Speed, "Ana Sayfa"),
+    NavigationItem(Screen.GalleryClean, Icons.Default.PhotoLibrary, "Fotoğraflar"),
     NavigationItem(Screen.FilesClean, Icons.Default.FolderZip, "Dosyalar"),
     NavigationItem(Screen.AppManager, Icons.Default.Apps, "Uygulamalar")
 )
@@ -97,7 +99,8 @@ fun OptivaFloatingBottomBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             navigationItems.forEach { item ->
-                val isSelected = currentRoute == item.screen.route
+                val isSelected = currentRoute == item.screen.route ||
+                    (item.screen == Screen.FilesClean && currentRoute?.startsWith("file_category/") == true)
 
                 val iconColor by animateColorAsState(
                     targetValue = if (isSelected) OptivaColors.BrandPrimary else OptivaColors.TextMuted,
@@ -207,12 +210,21 @@ fun OptivaNavHost(
         }
 
         composable(Screen.FilesClean.route) {
-            FilesCleanScreen()
+            FilesHomeScreen { category -> navController.navigate("file_category/${category.name}") }
+        }
+
+        composable("file_category/{category}") { entry ->
+            val category = FilesCategoryTab.entries.firstOrNull {
+                it.name == entry.arguments?.getString("category")
+            }
+            if (category != null) {
+                FilesCleanScreen(selectedCategoryTab = category, onBack = { navController.popBackStack() })
+            }
         }
 
         // Backward compatibility route
         composable(Screen.StorageClean.route) {
-            FilesCleanScreen()
+            FilesHomeScreen { category -> navController.navigate("file_category/${category.name}") }
         }
 
         composable(Screen.AppManager.route) {

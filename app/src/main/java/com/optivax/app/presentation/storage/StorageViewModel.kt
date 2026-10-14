@@ -42,6 +42,7 @@ import com.optivax.app.domain.usecase.PurgeTrashItemUseCase
 import com.optivax.app.domain.usecase.RestoreAllTrashUseCase
 import com.optivax.app.domain.usecase.RestoreTrashItemUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -266,7 +267,6 @@ class StorageViewModel @Inject constructor(
 
     init {
         observeTrash()
-        startScan()
     }
 
     private fun observeTrash() {
@@ -335,12 +335,14 @@ class StorageViewModel @Inject constructor(
         _uiState.update { it.copy(useTrashBin = useTrash) }
     }
 
-    fun startScan(resetResult: Boolean = true) {
+    fun startScan(resetResult: Boolean = true, tab: StorageCleanTab = _uiState.value.activeTab) {
+        if (_uiState.value.isCleaning) return
         scanJob?.cancel()
         scanJob = viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     isScanning = true,
+                    activeTab = tab,
                     cleanedBytesResult = if (resetResult) null else it.cleanedBytesResult,
                     errorMessage = null
                 )
@@ -349,7 +351,7 @@ class StorageViewModel @Inject constructor(
             val external = Environment.getExternalStorageDirectory()
             val targetDirs = mutableListOf<File>()
 
-            if (external != null && external.exists() && external.isDirectory) {
+            if (tab == StorageCleanTab.DUPLICATES && external != null && external.exists() && external.isDirectory) {
                 listOf(
                     Environment.DIRECTORY_DOWNLOADS,
                     Environment.DIRECTORY_DCIM,
@@ -380,185 +382,166 @@ class StorageViewModel @Inject constructor(
 
             Log.d(Constants.TAG, "[SCAN_INIT] Starting scan with ${targetDirs.size} target directories.")
 
-            // 1. Scan Duplicates
-            launch {
-                findDuplicatesUseCase(targetDirs).collectLatest { res ->
-                    when (res) {
-                        is Resource.Success -> {
+            coroutineScope {
+                // 1. Scan Duplicates
+                if (tab == StorageCleanTab.DUPLICATES) launch {
+                    findDuplicatesUseCase(targetDirs).collectLatest { res ->
+                        when (res) {
+                            is Resource.Success -> {
+                                val items = res.data
+                                _uiState.update {
+                                    it.copy(
+                                        duplicates = items,
+                                        selectedDuplicatePaths = emptySet()
+                                    )
+                                }
+                            }
+                            is Resource.Error -> {
+                                _uiState.update { it.copy(errorMessage = res.message) }
+                            }
+                            is Resource.Loading -> {}
+                        }
+                    }
+                }
+
+                // 2. Scan WhatsApp Media Hygiene
+                if (tab == StorageCleanTab.WHATSAPP) launch {
+                    getWhatsAppMediaUseCase().collectLatest { res ->
+                        when (res) {
+                            is Resource.Success -> {
+                                val categories = res.data
+                                _uiState.update {
+                                    it.copy(
+                                        whatsAppCategories = categories,
+                                        selectedWhatsAppCategories = emptySet(),
+                                        selectedWhatsAppFilePaths = emptyMap()
+                                    )
+                                }
+                            }
+                            is Resource.Error -> {
+                                _uiState.update { it.copy(errorMessage = res.message) }
+                            }
+                            is Resource.Loading -> {}
+                        }
+                    }
+                }
+
+                // 2.5. Scan Telegram Media Hygiene
+                if (tab == StorageCleanTab.TELEGRAM) launch {
+                    getTelegramMediaUseCase().collectLatest { res ->
+                        when (res) {
+                            is Resource.Success -> {
+                                val categories = res.data
+                                _uiState.update {
+                                    it.copy(
+                                        telegramCategories = categories,
+                                        selectedTelegramCategories = emptySet(),
+                                        selectedTelegramFilePaths = emptyMap()
+                                    )
+                                }
+                            }
+                            is Resource.Error -> {
+                                _uiState.update { it.copy(errorMessage = res.message) }
+                            }
+                            is Resource.Loading -> {}
+                        }
+                    }
+                }
+
+                // 3. Scan Corpse Files
+                if (tab == StorageCleanTab.CORPSE_FILES) launch {
+                    findCorpseFilesUseCase().collectLatest { res ->
+                        when (res) {
+                            is Resource.Success -> {
+                                val corpses = res.data
+                                _uiState.update {
+                                    it.copy(
+                                        corpseFiles = corpses,
+                                        selectedCorpseItems = emptySet()
+                                    )
+                                }
+                            }
+                            is Resource.Error -> {
+                                _uiState.update {
+                                    it.copy(
+                                        errorMessage = res.message
+                                    )
+                                }
+                            }
+                            is Resource.Loading -> {}
+                        }
+                    }
+                }
+
+                // 4. Scan Large Files
+                if (tab == StorageCleanTab.LARGE_FILES) launch {
+                    findLargeFilesUseCase(_uiState.value.largeFileSizeThreshold).collectLatest { res ->
+                        if (res is Resource.Error) _uiState.update { it.copy(errorMessage = res.message) }
+                        if (res is Resource.Success) {
+                            _uiState.update { it.copy(largeFiles = res.data) }
+                        }
+                    }
+                }
+
+                // 5. Scan Screenshots
+                if (tab == StorageCleanTab.SCREENSHOTS) launch {
+                    findScreenshotsUseCase(_uiState.value.screenshotAgeThresholdDays).collectLatest { res ->
+                        if (res is Resource.Error) _uiState.update { it.copy(errorMessage = res.message) }
+                        if (res is Resource.Success) {
+                            _uiState.update { it.copy(screenshots = res.data) }
+                        }
+                    }
+                }
+
+                // 6. Scan Similar Photos (dHash)
+                if (tab == StorageCleanTab.SIMILAR_PHOTOS) launch {
+                    findSimilarPhotosUseCase().collectLatest { res ->
+                        if (res is Resource.Error) _uiState.update { it.copy(errorMessage = res.message) }
+                        if (res is Resource.Success) {
+                            val groups = res.data
+                            _uiState.update {
+                                it.copy(
+                                    similarPhotoGroups = groups,
+                                    selectedSimilarPhotoPaths = emptySet()
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 7. Scan Blurry Photos (Laplacian Variance)
+                if (tab == StorageCleanTab.BLURRY_PHOTOS) launch {
+                    findBlurryPhotosUseCase(_uiState.value.blurryThreshold).collectLatest { res ->
+                        if (res is Resource.Error) _uiState.update { it.copy(errorMessage = res.message) }
+                        if (res is Resource.Success) {
+                            val blurry = res.data
+                            _uiState.update {
+                                it.copy(
+                                    blurryPhotos = blurry,
+                                    selectedBlurryPhotoPaths = emptySet()
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 8. Scan Downloads & APKs
+                if (tab == StorageCleanTab.DOWNLOADS_APKS) launch {
+                    findDownloadsAndApksUseCase(_uiState.value.downloadAgeThresholdDays).collectLatest { res ->
+                        if (res is Resource.Error) _uiState.update { it.copy(errorMessage = res.message) }
+                        if (res is Resource.Success) {
                             val items = res.data
-                            val suggested = mutableSetOf<String>()
-                            for (item in items) {
-                                for (d in item.duplicates) {
-                                    if (d.isSuggestedDeletion) {
-                                        suggested.add(d.filePath)
-                                    }
-                                }
-                            }
                             _uiState.update {
                                 it.copy(
-                                    duplicates = items,
-                                    selectedDuplicatePaths = suggested
+                                    downloadsAndApks = items,
+                                    selectedDownloadPaths = emptySet()
                                 )
                             }
                         }
-                        is Resource.Error -> {
-                            _uiState.update { it.copy(errorMessage = res.message) }
-                        }
-                        is Resource.Loading -> {}
                     }
                 }
             }
-
-            // 2. Scan WhatsApp Media Hygiene
-            launch {
-                getWhatsAppMediaUseCase().collectLatest { res ->
-                    when (res) {
-                        is Resource.Success -> {
-                            val categories = res.data
-                            val preselected = categories.filter { it.isRecommendedClean }.map { it.type }.toSet()
-                            val initialFileMap = mutableMapOf<WhatsAppCategoryType, Set<String>>()
-                            for (cat in categories) {
-                                if (cat.isRecommendedClean) {
-                                    initialFileMap[cat.type] = cat.files.map { it.absolutePath }.toSet()
-                                }
-                            }
-                            _uiState.update {
-                                it.copy(
-                                    whatsAppCategories = categories,
-                                    selectedWhatsAppCategories = preselected,
-                                    selectedWhatsAppFilePaths = initialFileMap
-                                )
-                            }
-                        }
-                        is Resource.Error -> {
-                            Log.e(Constants.TAG, "[WHATSAPP] Error scanning WhatsApp: ${res.message}")
-                        }
-                        is Resource.Loading -> {}
-                    }
-                }
-            }
-
-            // 2.5. Scan Telegram Media Hygiene
-            launch {
-                getTelegramMediaUseCase().collectLatest { res ->
-                    when (res) {
-                        is Resource.Success -> {
-                            val categories = res.data
-                            val preselected = categories.filter { it.isRecommendedClean }.map { it.type }.toSet()
-                            val initialFileMap = mutableMapOf<TelegramCategoryType, Set<String>>()
-                            for (cat in categories) {
-                                if (cat.isRecommendedClean) {
-                                    initialFileMap[cat.type] = cat.files.map { it.absolutePath }.toSet()
-                                }
-                            }
-                            _uiState.update {
-                                it.copy(
-                                    telegramCategories = categories,
-                                    selectedTelegramCategories = preselected,
-                                    selectedTelegramFilePaths = initialFileMap
-                                )
-                            }
-                        }
-                        is Resource.Error -> {
-                            Log.e(Constants.TAG, "[TELEGRAM] Error scanning Telegram: ${res.message}")
-                        }
-                        is Resource.Loading -> {}
-                    }
-                }
-            }
-
-            // 3. Scan Corpse Files
-            launch {
-                findCorpseFilesUseCase().collectLatest { res ->
-                    when (res) {
-                        is Resource.Success -> {
-                            val corpses = res.data
-                            _uiState.update {
-                                it.copy(
-                                    isScanning = false,
-                                    corpseFiles = corpses,
-                                    selectedCorpseItems = corpses.toSet()
-                                )
-                            }
-                        }
-                        is Resource.Error -> {
-                            _uiState.update {
-                                it.copy(
-                                    isScanning = false,
-                                    errorMessage = res.message
-                                )
-                            }
-                        }
-                        is Resource.Loading -> {}
-                    }
-                }
-            }
-
-            // 4. Scan Large Files
-            launch {
-                findLargeFilesUseCase(_uiState.value.largeFileSizeThreshold).collectLatest { res ->
-                    if (res is Resource.Success) {
-                        _uiState.update { it.copy(largeFiles = res.data) }
-                    }
-                }
-            }
-
-            // 5. Scan Screenshots
-            launch {
-                findScreenshotsUseCase(_uiState.value.screenshotAgeThresholdDays).collectLatest { res ->
-                    if (res is Resource.Success) {
-                        _uiState.update { it.copy(screenshots = res.data) }
-                    }
-                }
-            }
-
-            // 6. Scan Similar Photos (dHash)
-            launch {
-                findSimilarPhotosUseCase().collectLatest { res ->
-                    if (res is Resource.Success) {
-                        val groups = res.data
-                        val suggested = groups.flatMap { g -> g.similarPhotos.map { it.absolutePath } }.toSet()
-                        _uiState.update {
-                            it.copy(
-                                similarPhotoGroups = groups,
-                                selectedSimilarPhotoPaths = suggested
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 7. Scan Blurry Photos (Laplacian Variance)
-            launch {
-                findBlurryPhotosUseCase(_uiState.value.blurryThreshold).collectLatest { res ->
-                    if (res is Resource.Success) {
-                        val blurry = res.data
-                        val allBlurryPaths = blurry.map { it.path }.toSet()
-                        _uiState.update {
-                            it.copy(
-                                blurryPhotos = blurry,
-                                selectedBlurryPhotoPaths = allBlurryPaths
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 8. Scan Downloads & APKs
-            launch {
-                findDownloadsAndApksUseCase(_uiState.value.downloadAgeThresholdDays).collectLatest { res ->
-                    if (res is Resource.Success) {
-                        val items = res.data
-                        val suggested = items.filter { it.isAlreadyInstalled }.map { it.path }.toSet()
-                        _uiState.update {
-                            it.copy(
-                                downloadsAndApks = items,
-                                selectedDownloadPaths = suggested
-                            )
-                        }
-                    }
-                }
-            }
+            _uiState.update { it.copy(isScanning = false) }
         }
     }
 
@@ -1054,9 +1037,13 @@ class StorageViewModel @Inject constructor(
         }
     }
 
-    fun cleanSelected() {
+    fun cleanSelected(tab: StorageCleanTab) {
+        if (_uiState.value.isCleaning || _uiState.value.isScanning || _uiState.value.errorMessage != null || _uiState.value.activeTab != tab) return
+        val state = _uiState.value.selectionFor(tab).let {
+            if (tab == StorageCleanTab.CORPSE_FILES) it.copy(useTrashBin = false) else it
+        }
+        _uiState.update { it.copy(isCleaning = true) }
         viewModelScope.launch {
-            val state = _uiState.value
 
             // 1. Gather all file paths to delete
             val duplicateFilesToDelete = state.selectedDuplicatePaths.toList()
@@ -1076,11 +1063,14 @@ class StorageViewModel @Inject constructor(
             val blurryPhotosToDelete = state.selectedBlurryPhotoPaths.toList()
             val downloadsToDelete = state.selectedDownloadPaths.toList()
 
-            val allFilesToDelete = duplicateFilesToDelete + whatsAppFilesToDelete + telegramFilesToDelete +
-                    largeFilesToDelete + screenshotsToDelete + similarPhotosToDelete + blurryPhotosToDelete + downloadsToDelete
+            val allFilesToDelete = (duplicateFilesToDelete + whatsAppFilesToDelete + telegramFilesToDelete +
+                    largeFilesToDelete + screenshotsToDelete + similarPhotosToDelete + blurryPhotosToDelete + downloadsToDelete).distinct()
             val totalBatchSize = allFilesToDelete.size + state.selectedCorpseItems.size
 
-            if (totalBatchSize == 0) return@launch
+            if (totalBatchSize == 0) {
+                _uiState.update { it.copy(isCleaning = false) }
+                return@launch
+            }
 
             _uiState.update {
                 it.copy(

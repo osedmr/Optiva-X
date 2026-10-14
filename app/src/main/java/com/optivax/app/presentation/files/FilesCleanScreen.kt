@@ -31,6 +31,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Archive
@@ -113,6 +114,8 @@ import com.optivax.app.presentation.components.OptivaGlassCard
 import com.optivax.app.presentation.components.RadarScanAnimation
 import com.optivax.app.presentation.storage.DownloadFilterType
 import com.optivax.app.presentation.storage.StorageViewModel
+import com.optivax.app.presentation.storage.StorageCleanTab
+import com.optivax.app.presentation.storage.selectionFor
 import com.optivax.app.presentation.theme.OptivaColors
 import com.optivax.app.presentation.theme.TextMuted
 import com.optivax.app.presentation.theme.TextPrimary
@@ -122,22 +125,26 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-enum class FilesCategoryTab {
-    WHATSAPP,
-    TELEGRAM,
-    DUPLICATES,
-    DOWNLOADS_APKS,
-    CORPSE_FILES,
-    LARGE_FILES
+enum class FilesCategoryTab(val title: String, val description: String) {
+    WHATSAPP("WhatsApp", "Fotoğraf, video ve diğer paylaşılan dosyalar"),
+    TELEGRAM("Telegram", "Fotoğraf, video ve diğer paylaşılan dosyalar"),
+    DUPLICATES("Kopya dosyalar", "Aynı içeriğe sahip dosyaları inceleyin"),
+    DOWNLOADS_APKS("İndirilenler ve APK", "İndirdiğiniz belgeler ve kurulum dosyaları"),
+    CORPSE_FILES("Geçici dosyalar", "Önizleme önbellekleri ve geçici dosyalar"),
+    LARGE_FILES("Büyük dosyalar", "Depolamada en çok yer kaplayan dosyalar")
 }
 
 @Composable
 fun FilesCleanScreen(
+    selectedCategoryTab: FilesCategoryTab,
+    onBack: () -> Unit,
     viewModel: StorageViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    var selectedCategoryTab by remember { mutableStateOf(FilesCategoryTab.WHATSAPP) }
+    val category = StorageCleanTab.valueOf(selectedCategoryTab.name)
+    val selection = uiState.selectionFor(category)
+    LaunchedEffect(category) { viewModel.startScan(tab = category) }
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     val deleteIntentLauncher = rememberLauncherForActivityResult(
@@ -203,7 +210,7 @@ fun FilesCleanScreen(
             onDismissRequest = { showConfirmDialog = false },
             title = {
                 Text(
-                    text = if (uiState.useTrashBin) "Güvenli Çöp Kutusuna Taşı" else "Kalıcı Olarak Temizle",
+                    text = if (uiState.useTrashBin && category != StorageCleanTab.CORPSE_FILES) "Güvenli Çöp Kutusuna Taşı" else "Kalıcı Olarak Temizle",
                     color = TextPrimary,
                     fontWeight = FontWeight.Bold
                 )
@@ -211,10 +218,11 @@ fun FilesCleanScreen(
             text = {
                 Column {
                     Text(
-                        text = "${FileUtils.formatFileSize(uiState.selectedBytesToClean)} boyutundaki seçilen dosyalar temizlenecektir.",
+                        text = "${FileUtils.formatFileSize(selection.selectedBytesToClean)} boyutundaki seçilen dosyalar temizlenecektir.",
                         color = OptivaColors.TextSecondary
                     )
                     Spacer(modifier = Modifier.height(14.dp))
+                    if (category != StorageCleanTab.CORPSE_FILES) {
                     OptivaGlassCard(
                         borderColor = OptivaColors.BorderSubtle,
                         backgroundColor = OptivaColors.SurfaceSub
@@ -247,20 +255,23 @@ fun FilesCleanScreen(
                             )
                         }
                     }
+                    } else {
+                        Text("Geçici dosyalar kalıcı silinir. Bu işlem geri alınamaz.")
+                    }
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
                         showConfirmDialog = false
-                        viewModel.cleanSelected()
+                        viewModel.cleanSelected(category)
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (uiState.useTrashBin) OptivaColors.BrandPrimary else OptivaColors.Danger,
+                        containerColor = if (uiState.useTrashBin && category != StorageCleanTab.CORPSE_FILES) OptivaColors.BrandPrimary else OptivaColors.Danger,
                         contentColor = OptivaColors.CanvasBase
                     )
                 ) {
-                    Text(if (uiState.useTrashBin) "Çöp Kutusuna Taşı" else "Kalıcı Olarak Sil", fontWeight = FontWeight.Bold)
+                    Text(if (uiState.useTrashBin && category != StorageCleanTab.CORPSE_FILES) "Çöp Kutusuna Taşı" else "Kalıcı Olarak Sil", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -294,7 +305,7 @@ fun FilesCleanScreen(
             },
             text = {
                 Text(
-                    text = "Cihazınızda ${FileUtils.formatFileSize(uiState.cleanedBytesResult ?: 0L)} boş alan başarıyla geri kazanıldı. Sohbetleriniz güvende tutuldu.",
+                    text = if (uiState.useTrashBin && category != StorageCleanTab.CORPSE_FILES) "Seçilen dosyalar çöp kutusuna taşındı. Alan, kalıcı silme sonrasında boşalır." else "Silme işlemi tamamlandı.",
                     color = OptivaColors.TextSecondary
                 )
             },
@@ -331,6 +342,9 @@ fun FilesCleanScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(onClick = onBack, enabled = !uiState.isCleaning) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Dosyalara dön")
+                    }
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -341,14 +355,14 @@ fun FilesCleanScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Sohbet & Dosya Avcısı",
+                                text = selectedCategoryTab.title,
                                 style = MaterialTheme.typography.titleLarge,
                                 color = OptivaColors.TextPrimary,
                                 fontWeight = FontWeight.Black
                             )
                         }
                         Text(
-                            text = "WhatsApp, Telegram, çift dosyalar ve kurulu APK paketleri",
+                            text = "Yalnızca bu kategoride seçtiğiniz dosyalar işleme alınır",
                             style = MaterialTheme.typography.labelSmall,
                             color = OptivaColors.TextSecondary,
                             maxLines = 1,
@@ -396,7 +410,7 @@ fun FilesCleanScreen(
                         }
 
                         IconButton(
-                            onClick = { viewModel.startScan() },
+                            onClick = { viewModel.startScan(tab = category) },
                             enabled = !uiState.isScanning && !uiState.isCleaning,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
@@ -408,64 +422,6 @@ fun FilesCleanScreen(
                                 tint = OptivaColors.BrandPrimary
                             )
                         }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Category Chips (WhatsApp, Telegram, Çift Dosyalar, İndirilen & APK, Artık Veri, Büyük Dosya)
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    item {
-                        FileCategoryChip(
-                            title = "WhatsApp",
-                            subtitle = FileUtils.formatFileSize(uiState.totalWhatsAppBytes),
-                            isSelected = selectedCategoryTab == FilesCategoryTab.WHATSAPP,
-                            onClick = { selectedCategoryTab = FilesCategoryTab.WHATSAPP }
-                        )
-                    }
-                    item {
-                        FileCategoryChip(
-                            title = "Telegram",
-                            subtitle = FileUtils.formatFileSize(uiState.totalTelegramBytes),
-                            isSelected = selectedCategoryTab == FilesCategoryTab.TELEGRAM,
-                            onClick = { selectedCategoryTab = FilesCategoryTab.TELEGRAM }
-                        )
-                    }
-                    item {
-                        FileCategoryChip(
-                            title = "Çift Dosyalar",
-                            subtitle = "${uiState.duplicates.size} grup",
-                            isSelected = selectedCategoryTab == FilesCategoryTab.DUPLICATES,
-                            onClick = { selectedCategoryTab = FilesCategoryTab.DUPLICATES }
-                        )
-                    }
-                    item {
-                        FileCategoryChip(
-                            title = "İndirilenler & APK",
-                            subtitle = "${uiState.downloadsAndApks.size} dosya",
-                            isSelected = selectedCategoryTab == FilesCategoryTab.DOWNLOADS_APKS,
-                            onClick = { selectedCategoryTab = FilesCategoryTab.DOWNLOADS_APKS }
-                        )
-                    }
-                    item {
-                        FileCategoryChip(
-                            title = "Artık Veriler",
-                            subtitle = "${uiState.corpseFiles.size} klasör",
-                            isSelected = selectedCategoryTab == FilesCategoryTab.CORPSE_FILES,
-                            onClick = { selectedCategoryTab = FilesCategoryTab.CORPSE_FILES }
-                        )
-                    }
-                    item {
-                        FileCategoryChip(
-                            title = "Büyük Dosyalar",
-                            subtitle = "${uiState.largeFiles.size} dosya",
-                            isSelected = selectedCategoryTab == FilesCategoryTab.LARGE_FILES,
-                            onClick = { selectedCategoryTab = FilesCategoryTab.LARGE_FILES }
-                        )
                     }
                 }
 
@@ -575,9 +531,11 @@ fun FilesCleanScreen(
 
                 // Main Tab Content
                 Box(modifier = Modifier.weight(1f)) {
-                    if (uiState.isScanning) {
+                    if (uiState.errorMessage != null && !uiState.isScanning) {
+                        Text(uiState.errorMessage.orEmpty(), color = OptivaColors.Danger, modifier = Modifier.padding(20.dp))
+                    } else if (uiState.isScanning) {
                         RadarScanAnimation(
-                            statusText = "Dosyalar ve sohbet medyaları taranıyor...",
+                            statusText = "${selectedCategoryTab.title} taranıyor...",
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {
@@ -706,16 +664,9 @@ fun FilesCleanScreen(
             }
 
             // Sleek Floating Clean Recovery Bar
-            val hasSelection = uiState.selectedWhatsAppCategories.isNotEmpty() ||
-                    uiState.selectedWhatsAppFilePaths.values.any { it.isNotEmpty() } ||
-                    uiState.selectedTelegramCategories.isNotEmpty() ||
-                    uiState.selectedTelegramFilePaths.values.any { it.isNotEmpty() } ||
-                    uiState.selectedDuplicatePaths.isNotEmpty() ||
-                    uiState.selectedDownloadPaths.isNotEmpty() ||
-                    uiState.selectedCorpseItems.isNotEmpty() ||
-                    uiState.selectedLargeFilePaths.isNotEmpty()
+            val hasSelection = selection.selectedBytesToClean > 0
 
-            if (hasSelection && !uiState.isScanning && !uiState.isCleaning) {
+            if (hasSelection && !uiState.isScanning && !uiState.isCleaning && uiState.errorMessage == null) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -766,7 +717,7 @@ fun FilesCleanScreen(
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
-                                        text = FileUtils.formatFileSize(uiState.selectedBytesToClean),
+                                        text = FileUtils.formatFileSize(selection.selectedBytesToClean),
                                         style = MaterialTheme.typography.titleMedium,
                                         color = OptivaColors.BrandPrimary,
                                         fontWeight = FontWeight.Black,
@@ -795,7 +746,7 @@ fun FilesCleanScreen(
                                 )
                                 Spacer(modifier = Modifier.width(5.dp))
                                 Text(
-                                    text = "Temizle",
+                                    text = if (uiState.useTrashBin && category != StorageCleanTab.CORPSE_FILES) "Çöp kutusuna taşı" else "Kalıcı sil",
                                     fontWeight = FontWeight.Black,
                                     fontSize = 13.sp
                                 )

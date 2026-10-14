@@ -90,6 +90,8 @@ import com.optivax.app.presentation.components.InAppMediaViewerDialog
 import com.optivax.app.presentation.components.OptivaGlassCard
 import com.optivax.app.presentation.components.RadarScanAnimation
 import com.optivax.app.presentation.storage.StorageViewModel
+import com.optivax.app.presentation.storage.StorageCleanTab
+import com.optivax.app.presentation.storage.selectionFor
 import com.optivax.app.presentation.theme.OptivaColors
 import com.optivax.app.presentation.theme.TextMuted
 import com.optivax.app.presentation.theme.TextPrimary
@@ -110,6 +112,14 @@ fun GalleryScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var selectedTab by remember { mutableStateOf(GalleryTab.SIMILAR) }
+    val category = when (selectedTab) {
+        GalleryTab.SIMILAR -> StorageCleanTab.SIMILAR_PHOTOS
+        GalleryTab.BLURRY -> StorageCleanTab.BLURRY_PHOTOS
+        GalleryTab.SCREENSHOTS -> StorageCleanTab.SCREENSHOTS
+    }
+    val selection = uiState.selectionFor(category)
+    LaunchedEffect(category) { viewModel.startScan(tab = category) }
+
     var showConfirmDialog by remember { mutableStateOf(false) }
     val deleteIntentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
@@ -154,7 +164,7 @@ fun GalleryScreen(
             text = {
                 Column {
                     Text(
-                        text = "${FileUtils.formatFileSize(uiState.selectedBytesToClean)} boyutundaki seçilen fotoğraflar temizlenecektir.",
+                        text = "${FileUtils.formatFileSize(selection.selectedBytesToClean)} boyutundaki seçilen fotoğraflar temizlenecektir.",
                         color = OptivaColors.TextSecondary
                     )
                     Spacer(modifier = Modifier.height(14.dp))
@@ -196,7 +206,7 @@ fun GalleryScreen(
                 Button(
                     onClick = {
                         showConfirmDialog = false
-                        viewModel.cleanSelected()
+                        viewModel.cleanSelected(category)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (uiState.useTrashBin) OptivaColors.BrandPrimary else OptivaColors.Danger,
@@ -237,7 +247,7 @@ fun GalleryScreen(
             },
             text = {
                 Text(
-                    text = "Fotoğraf albümünüzde ${FileUtils.formatFileSize(uiState.cleanedBytesResult ?: 0L)} boş alan başarıyla geri kazanıldı.",
+                    text = if (uiState.useTrashBin) "Seçilen fotoğraflar çöp kutusuna taşındı. Alan, kalıcı silme sonrasında boşalır." else "Silme işlemi tamamlandı.",
                     color = OptivaColors.TextSecondary
                 )
             },
@@ -284,7 +294,7 @@ fun GalleryScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Medya & Galeri AI",
+                                text = "Fotoğraflar",
                                 style = MaterialTheme.typography.titleLarge,
                                 color = OptivaColors.TextPrimary,
                                 fontWeight = FontWeight.Black
@@ -340,7 +350,7 @@ fun GalleryScreen(
                         }
 
                         IconButton(
-                            onClick = { viewModel.startScan() },
+                            onClick = { viewModel.startScan(tab = category) },
                             enabled = !uiState.isScanning && !uiState.isCleaning,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
@@ -368,21 +378,21 @@ fun GalleryScreen(
                         title = "Benzerler",
                         count = uiState.similarPhotoGroups.size,
                         isSelected = selectedTab == GalleryTab.SIMILAR,
-                        onClick = { selectedTab = GalleryTab.SIMILAR },
+                        onClick = { if (!uiState.isCleaning) selectedTab = GalleryTab.SIMILAR },
                         modifier = Modifier.weight(1f)
                     )
                     GalleryTabChip(
                         title = "Bulanıklar",
                         count = uiState.blurryPhotos.size,
                         isSelected = selectedTab == GalleryTab.BLURRY,
-                        onClick = { selectedTab = GalleryTab.BLURRY },
+                        onClick = { if (!uiState.isCleaning) selectedTab = GalleryTab.BLURRY },
                         modifier = Modifier.weight(1f)
                     )
                     GalleryTabChip(
                         title = "Ekran Görüntüsü",
                         count = uiState.screenshots.size,
                         isSelected = selectedTab == GalleryTab.SCREENSHOTS,
-                        onClick = { selectedTab = GalleryTab.SCREENSHOTS },
+                        onClick = { if (!uiState.isCleaning) selectedTab = GalleryTab.SCREENSHOTS },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -449,9 +459,11 @@ fun GalleryScreen(
 
                 // Main Content
                 Box(modifier = Modifier.weight(1f)) {
-                    if (uiState.isScanning) {
+                    if (uiState.errorMessage != null && !uiState.isScanning) {
+                        Text(uiState.errorMessage.orEmpty(), color = OptivaColors.Danger, modifier = Modifier.padding(20.dp))
+                    } else if (uiState.isScanning) {
                         RadarScanAnimation(
-                            statusText = "Galeri ve fotoğraflar yapay zeka ile taranıyor...",
+                            statusText = "Seçilen fotoğraf kategorisi taranıyor...",
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {
@@ -492,11 +504,9 @@ fun GalleryScreen(
             }
 
             // Sleek Floating Clean Recovery Bar
-            val hasSelection = uiState.selectedSimilarPhotoPaths.isNotEmpty() ||
-                    uiState.selectedBlurryPhotoPaths.isNotEmpty() ||
-                    uiState.selectedScreenshotPaths.isNotEmpty()
+            val hasSelection = selection.selectedBytesToClean > 0
 
-            if (hasSelection && !uiState.isScanning && !uiState.isCleaning) {
+            if (hasSelection && !uiState.isScanning && !uiState.isCleaning && uiState.errorMessage == null) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -547,7 +557,7 @@ fun GalleryScreen(
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
-                                        text = FileUtils.formatFileSize(uiState.selectedBytesToClean),
+                                        text = FileUtils.formatFileSize(selection.selectedBytesToClean),
                                         style = MaterialTheme.typography.titleMedium,
                                         color = OptivaColors.BrandPrimary,
                                         fontWeight = FontWeight.Black,
@@ -576,7 +586,7 @@ fun GalleryScreen(
                                 )
                                 Spacer(modifier = Modifier.width(5.dp))
                                 Text(
-                                    text = "Temizle",
+                                    text = if (uiState.useTrashBin) "Çöp kutusuna taşı" else "Kalıcı sil",
                                     fontWeight = FontWeight.Black,
                                     fontSize = 13.sp
                                 )
