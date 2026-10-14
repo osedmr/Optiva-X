@@ -37,7 +37,7 @@ fun MediaConsentGate(content: @Composable () -> Unit) {
         context.getSharedPreferences("media_disclosure", Context.MODE_PRIVATE)
     }
     var accepted by rememberSaveable {
-        mutableStateOf(preferences.getBoolean("local_media_v1", false))
+        mutableStateOf(preferences.getBoolean("local_media_v2", false))
     }
     var declined by rememberSaveable { mutableStateOf(false) }
     var requesting by rememberSaveable { mutableStateOf(false) }
@@ -70,7 +70,7 @@ fun MediaConsentGate(content: @Composable () -> Unit) {
         } else {
             Button(enabled = !requesting, onClick = {
                 // Persist only an affirmative action, before requesting any OS media permission.
-                preferences.edit().putBoolean("local_media_v1", true).apply()
+                preferences.edit().putBoolean("local_media_v2", true).apply()
                 requesting = true
                 launcher.launch(PermissionHelper.getRequiredStoragePermissions())
             }) {

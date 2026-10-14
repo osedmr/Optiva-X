@@ -47,6 +47,8 @@ object CacheCleanAutomationManager {
 
     private val _state = MutableStateFlow<CacheCleanState>(CacheCleanState.Idle)
     val state: StateFlow<CacheCleanState> = _state.asStateFlow()
+    private val _serviceConnected = MutableStateFlow(false)
+    val serviceConnected: StateFlow<Boolean> = _serviceConnected.asStateFlow()
 
     private var activeService: OptivaCacheCleanerService? = null
     private val queue: Queue<CacheTargetApp> = LinkedList()
@@ -67,11 +69,14 @@ object CacheCleanAutomationManager {
 
     fun bindService(service: OptivaCacheCleanerService) {
         activeService = service
+        _serviceConnected.value = true
         Log.d(Constants.TAG, "[ACCESSIBILITY] OptivaCacheCleanerService bound to manager.")
     }
 
     fun unbindService() {
+        cancelCleaning()
         activeService = null
+        _serviceConnected.value = false
         Log.d(Constants.TAG, "[ACCESSIBILITY] OptivaCacheCleanerService unbound.")
     }
 
@@ -81,6 +86,7 @@ object CacheCleanAutomationManager {
      * Starts the automated cache cleaning process for the given list of apps.
      */
     fun startCleaning(context: Context, apps: List<CacheTargetApp>) {
+        if (!AccessibilityConsent.isAccepted(context)) return
         if (apps.isEmpty()) return
         if (activeService == null) {
             Log.w(Constants.TAG, "[ACCESSIBILITY] Service not connected, cannot start automation.")
@@ -98,6 +104,7 @@ object CacheCleanAutomationManager {
     }
 
     fun cancelCleaning() {
+        mainHandler.removeCallbacksAndMessages(null)
         clearTimeout()
         queue.clear()
         currentTarget = null
@@ -156,6 +163,7 @@ object CacheCleanAutomationManager {
      * Handles accessibility window events emitted by Android Settings.
      */
     fun onAccessibilityEvent(context: Context, event: AccessibilityEvent, root: AccessibilityNodeInfo?) {
+        if (!AccessibilityConsent.isAccepted(context) || event.packageName?.toString() != "com.android.settings") return
         if (root == null || currentTarget == null) return
 
         when (currentStep) {
@@ -236,8 +244,7 @@ object CacheCleanAutomationManager {
                     contentDesc.contains("temizle") || contentDesc.contains("clear")
 
             val isCacheButton = (hasCacheWord && hasClearWord) ||
-                    viewId.contains("clear_cache_button") ||
-                    viewId.endsWith("button2")
+                    viewId.contains("clear_cache_button")
 
             if (isCacheButton && (node.isClickable || node.parent?.isClickable == true)) {
                 return if (node.isClickable) node else node.parent

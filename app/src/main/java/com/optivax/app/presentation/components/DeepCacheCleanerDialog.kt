@@ -88,8 +88,24 @@ fun DeepCacheCleanerDialog(
     onRefreshStats: () -> Unit
 ) {
     val context = LocalContext.current
+    var accessibilityAccepted by remember {
+        mutableStateOf(com.optivax.app.core.accessibility.AccessibilityConsent.isAccepted(context))
+    }
+    if (!accessibilityAccepted) {
+        AccessibilityDisclosureDialog(
+            onAccept = {
+                com.optivax.app.core.accessibility.AccessibilityConsent.accept(context)
+                accessibilityAccepted = true
+                if (!CacheCleanAutomationManager.isServiceConnected()) {
+                    context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                }
+            },
+            onDecline = onDismiss
+        )
+        return
+    }
     val automationState by CacheCleanAutomationManager.state.collectAsState()
-    val isServiceConnected = CacheCleanAutomationManager.isServiceConnected()
+    val isServiceConnected by CacheCleanAutomationManager.serviceConnected.collectAsState()
 
     // Filter apps with non-zero cache (> 1 MB) sorted descending
     val cacheApps = remember(apps) {
@@ -198,6 +214,7 @@ fun DeepCacheCleanerDialog(
                             selectedBytes = selectedBytes,
                             totalCacheBytes = totalCacheBytes,
                             isServiceConnected = isServiceConnected,
+                            onRequestAccessibility = { accessibilityAccepted = false },
                             onTogglePackage = { pkg ->
                                 selectedPackages = if (selectedPackages.contains(pkg)) {
                                     selectedPackages - pkg
@@ -256,6 +273,7 @@ private fun IdleCacheCleanView(
     selectedBytes: Long,
     totalCacheBytes: Long,
     isServiceConnected: Boolean,
+    onRequestAccessibility: () -> Unit,
     onTogglePackage: (String) -> Unit,
     onSelectAll: () -> Unit,
     onDeselectAll: () -> Unit,
@@ -342,12 +360,7 @@ private fun IdleCacheCleanView(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     OutlinedButton(
-                        onClick = {
-                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            context.startActivity(intent)
-                        },
+                        onClick = onRequestAccessibility,
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {

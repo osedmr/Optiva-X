@@ -417,59 +417,7 @@ class StorageRepositoryImpl @Inject constructor(
             val whitelistedPaths = whitelistDao.getAllPaths().toSet()
             val corpseItems = mutableListOf<CorpseItem>()
 
-            val externalStorage = Environment.getExternalStorageDirectory()
-            val candidateDirs = mutableListOf<File>()
-
-            // 1. Android/media directory (contains public app media packages)
-            val androidMedia = File(externalStorage, "Android/media")
-            if (androidMedia.exists() && androidMedia.isDirectory) {
-                candidateDirs.add(androidMedia)
-            }
-
-            for (parentDir in candidateDirs) {
-                if (parentDir.exists() && parentDir.isDirectory) {
-                    val subDirs = parentDir.listFiles()
-                    if (subDirs == null) {
-                        Log.d(Constants.TAG, "[CORPSE] Notice: '${parentDir.path}' is restricted by Android OS FUSE policy.")
-                        continue
-                    }
-                    Log.d(Constants.TAG, "[CORPSE] Scanning '${parentDir.path}': found ${subDirs.size} subdirectories.")
-
-                    for (dir in subDirs) {
-                        if (!dir.isDirectory) continue
-                        val dirName = dir.name
-
-                        // Standard package name format check (e.g. com.example.app)
-                        if (dirName.contains(".") && !dirName.startsWith(".")) {
-                            val isInstalled = usageStatsHelper.isPackageInstalled(dirName)
-                            val isWhitelisted = whitelistedPaths.contains(dir.absolutePath)
-
-                            Log.d(
-                                Constants.TAG,
-                                "[CORPSE] Package check: '$dirName' | Installed: $isInstalled | Whitelisted: $isWhitelisted"
-                            )
-
-                            if (!isInstalled && !isWhitelisted) {
-                                val size = calculateDirectorySize(dir, maxDepth = 6)
-                                val count = countDirectoryFiles(dir, maxDepth = 6)
-
-                                if (size > 0L) {
-                                    Log.d(Constants.TAG, "[CORPSE] FOUND CORPSE: '$dirName' with $count files, $size bytes.")
-                                    corpseItems.add(
-                                        CorpseItem(
-                                            packageName = dirName,
-                                            path = dir.absolutePath,
-                                            displayName = "$dirName (Artık Veriler)",
-                                            sizeBytes = size,
-                                            fileCount = count
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // Package invisibility is not evidence of uninstallation. Never classify app media folders as leftovers.
 
             // 3. Check for leftover APK installer packages in Downloads
             val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
@@ -877,7 +825,7 @@ class StorageRepositoryImpl @Inject constructor(
             val whitelistedPaths = whitelistDao.getAllPaths().toSet()
             val pm = context.packageManager
             val installedPackagesMap = try {
-                pm.getInstalledPackages(0).associate { it.packageName to (it.versionName ?: "") }
+                usageStatsHelper.getInstalledApplications(includeSystemApps = true).associate { it.packageName to (pm.getPackageInfo(it.packageName, 0).versionName ?: "") }
             } catch (e: Exception) {
                 emptyMap()
             }

@@ -19,7 +19,11 @@ class OptivaCacheCleanerService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
+        if (!AccessibilityConsent.isAccepted(this)) return
+        if (CacheCleanAutomationManager.state.value !is CacheCleanState.Running) return
+        if (event.packageName?.toString() != "com.android.settings") return
         val root = rootInActiveWindow ?: return
+        if (root.packageName?.toString() != "com.android.settings") return
         CacheCleanAutomationManager.onAccessibilityEvent(applicationContext, event, root)
     }
 

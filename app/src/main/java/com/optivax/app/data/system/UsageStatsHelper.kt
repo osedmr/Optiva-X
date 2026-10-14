@@ -3,6 +3,7 @@ package com.optivax.app.data.system
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Log
@@ -33,6 +34,7 @@ class UsageStatsHelper @Inject constructor(
      * Queries and aggregates usage stats between [startTime] and [endTime].
      */
     fun queryUsageStatsMap(startTime: Long, endTime: Long): Map<String, UsageStats> {
+        if (!hasAppDataConsent() || !com.optivax.app.core.PermissionHelper.hasUsageStatsPermission(context)) return emptyMap()
         return try {
             val statsList = usageStatsManager?.queryUsageStats(
                 UsageStatsManager.INTERVAL_BEST,
@@ -53,11 +55,15 @@ class UsageStatsHelper @Inject constructor(
     }
 
     /**
-     * Gets all installed applications on the device.
+     * Lists launchable apps only; this is not a complete installed-package inventory.
      */
     fun getInstalledApplications(includeSystemApps: Boolean = false): List<ApplicationInfo> {
+        if (!hasAppDataConsent()) return emptyList()
         val allApps = try {
-            val apps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+            val launcherIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+            val apps = packageManager.queryIntentActivities(launcherIntent, 0)
+                .map { it.activityInfo.applicationInfo }
+                .distinctBy { it.packageName }
             Log.d(
                 Constants.TAG,
                 "[APPS] PackageManager found ${apps.size} total installed applications (includeSystemApps: $includeSystemApps)."
@@ -97,17 +103,7 @@ class UsageStatsHelper @Inject constructor(
         }
     }
 
-    /**
-     * Determines whether a package is currently installed on the device.
-     */
-    fun isPackageInstalled(packageName: String): Boolean {
-        return try {
-            packageManager.getPackageInfo(packageName, 0)
-            true
-        } catch (e: PackageManager.NameNotFoundException) {
-            false
-        } catch (e: Exception) {
-            false
-        }
-    }
+    private fun hasAppDataConsent(): Boolean = context
+        .getSharedPreferences("media_disclosure", Context.MODE_PRIVATE)
+        .getBoolean("local_apps_v1", false)
 }

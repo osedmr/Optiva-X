@@ -10,10 +10,18 @@
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
 
-    <!-- Android 11+ (API 30+) Tüm Paketleri Görme İzni -->
+    <!-- Prevent dependencies from restoring broad package visibility. -->
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
+        tools:node="remove" />
+
+    <!-- Only apps with a launcher entry are needed for user-selected app management. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
 
     <!-- Uygulama Kaldırma İzni (Android 8.0+) -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />

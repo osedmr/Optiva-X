@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.optivax.app.core.Constants
 import com.optivax.app.presentation.components.MediaConsentGate
+import com.optivax.app.presentation.components.AppDataConsentGate
 import com.optivax.app.core.notification.OptivaBannerController
 import com.optivax.app.presentation.components.OptivaTopBannerHost
 import com.optivax.app.presentation.navigation.OptivaFloatingBottomBar
@@ -61,26 +62,28 @@ fun OptivaMainApp(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             MediaConsentGate {
-                // Main Navigation Graph
-                OptivaNavHost(
-                    navController = navController,
-                    modifier = Modifier.fillMaxSize()
-                )
+                AppDataConsentGate {
+                    // Main Navigation Graph
+                    OptivaNavHost(
+                        navController = navController,
+                        modifier = Modifier.fillMaxSize()
+                    )
 
-                // Floating Pill Navigation Bar
-                OptivaFloatingBottomBar(
-                    navController = navController,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
+                    // Floating Pill Navigation Bar
+                    OptivaFloatingBottomBar(
+                        navController = navController,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
 
-                // Global Animated Cyber Top Notification Banner
-                OptivaTopBannerHost(
-                    bannerController = bannerController,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .statusBarsPadding()
-                        .padding(top = 8.dp, start = 16.dp, end = 16.dp)
-                )
+                    // Global Animated Cyber Top Notification Banner
+                    OptivaTopBannerHost(
+                        bannerController = bannerController,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .statusBarsPadding()
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                    )
+                }
             }
         }
     }

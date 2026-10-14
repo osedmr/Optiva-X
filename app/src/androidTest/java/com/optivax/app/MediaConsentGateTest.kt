@@ -42,6 +42,17 @@ class MediaConsentGateTest {
         compose.onNodeWithText("MEDIA_CONTENT").assertDoesNotExist()
         val prefs = InstrumentationRegistry.getInstrumentation().targetContext
             .getSharedPreferences("media_disclosure", Context.MODE_PRIVATE)
-        org.junit.Assert.assertFalse(prefs.getBoolean("local_media_v1", false))
+        org.junit.Assert.assertFalse(prefs.getBoolean("local_media_v2", false))
+    }
+
+    @Test fun upgradeRequiresCurrentDisclosureEvenWithOldConsent() {
+        InstrumentationRegistry.getInstrumentation().targetContext
+            .getSharedPreferences("media_disclosure", Context.MODE_PRIVATE)
+            .edit().putBoolean("local_media_v1", true).commit()
+        compose.setContent {
+            MaterialTheme { MediaConsentGate { Text("MEDIA_CONTENT") } }
+        }
+        compose.onNodeWithText("Fotoğraf, video ve ses verilerine erişim").assertIsDisplayed()
+        compose.onNodeWithText("MEDIA_CONTENT").assertDoesNotExist()
     }
 }
